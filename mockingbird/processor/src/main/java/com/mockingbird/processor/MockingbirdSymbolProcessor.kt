@@ -106,14 +106,14 @@ class MockingbirdSymbolProcessor(
         implementationTypeSpec.addProperty(
             PropertySpec.builder(
                 "invocations",
-                ClassName("kotlin.collections", "MutableMap").parameterizedBy(
-                    String::class.asTypeName(),
-                    ClassName("kotlin.collections", "MutableList").parameterizedBy(
+                ClassName("kotlin.collections", "MutableList").parameterizedBy(
+                    Pair::class.asTypeName().parameterizedBy(
+                        String::class.asTypeName(),
                         List::class.asClassName().parameterizedBy(Any::class.asTypeName())
                     )
                 )
             )
-                .initializer("mutableMapOf<String, MutableList<List<Any>>>()")
+                .initializer("mutableListOf()")
                 .addModifiers(KModifier.OVERRIDE)
                 .build()
         )
@@ -148,27 +148,29 @@ class MockingbirdSymbolProcessor(
             }
 
             funSpec.beginControlFlow("if (verifying)")
+                .addStatement("val expectedInvocations = invocations.take(expected)")
+                .addStatement("invocations.removeAll(expectedInvocations)")
+                .beginControlFlow("check(expectedInvocations.size == expected)")
                 .addStatement(
-                    "val functionInvocations = invocations.getOrPut(%S) { mutableListOf() }",
-                    function.qualifiedName!!.asString()
+                    "\"Expected %1Lexpected invocations, but got %1L{expectedInvocations.size} instead.\"".noWrap(),
+                    "$"
                 )
-//                .apply {
-//                    beginControlFlow("check(functionInvocations.size == expected)")
-//                    addStatement(
-//                        "\"Expected %1Lexpected function invocations, got %1L{functionInvocations.size} instead\"",
-//                        "$"
-//                    )
-//                    endControlFlow()
-//                }
-                .addStatement("val expectedInvocations = functionInvocations.take(expected)")
-                .addStatement("functionInvocations.remove(expectedInvocations)")
+                .endControlFlow()
                 .beginControlFlow("expectedInvocations.forEach")
                 .apply {
+                    beginControlFlow("check(it.first == %S)", function.qualifiedName!!.asString())
+                    addStatement(
+                        "\"Expected function call %1L, %2L{it.first} was called instead\"".noWrap(),
+                        function.qualifiedName!!.asString(),
+                        "$"
+                    )
+                    endControlFlow()
                     function.parameters.forEachIndexed { index, value ->
                         val name = value.name!!.asString()
-                        beginControlFlow("check(%1L == it[%2L])", name, index)
+                        beginControlFlow("check(%1L == it.second[%2L])", name, index)
                         addStatement(
-                            "\"Expected argument %1L%2L, found %1L{it[%3L]} instead.\"", "$",
+                            "\"Expected argument %1L%2L, found %1L{it.second[%3L]} instead.\"".noWrap(),
+                            "$",
                             name,
                             index
                         )
@@ -176,14 +178,10 @@ class MockingbirdSymbolProcessor(
                     }
                 }
                 .endControlFlow()
-                .addStatement("functionInvocations.clear()")
                 .nextControlFlow("else")
                 .addStatement(
-                    "invocations.getOrPut(%S) { mutableListOf() }",
-                    function.qualifiedName!!.asString()
-                )
-                .addStatement(
-                    ".add(listOf(%L))",
+                    "invocations.add(Pair(%1S, listOf(%2L)))",
+                    function.qualifiedName!!.asString(),
                     function.parameters.joinToString { it.name!!.asString() })
                 .endControlFlow()
 
@@ -193,6 +191,8 @@ class MockingbirdSymbolProcessor(
 
         return implementationTypeSpec.build()
     }
+
+    private fun String.noWrap(): String = this.replace(" ", "·")
 
 
 }

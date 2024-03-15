@@ -2,7 +2,7 @@ package com.mockingbird.core
 
 interface Verifiable {
 
-    val invocations: MutableMap<String, MutableList<List<Any>>>
+    val invocations: MutableList<Pair<String, List<Any>>>
 
     var verifying: Boolean
 
@@ -22,7 +22,7 @@ fun Any.verifyNoInvocations() {
     check(this is Verifiable) { "You can only verify interfaces that have been annotated with Verify" }
 
     this.verifying = true
-    check(this.invocations.values.isEmpty()) { "Expected no invocations, but found ${this.invocations.values.isEmpty()}" }
+    check(this.invocations.isEmpty()) { "Expected no invocations, but found ${this.invocations.size}" }
     this.verifying = false
 }
 
