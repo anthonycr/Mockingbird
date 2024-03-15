@@ -11,6 +11,6 @@ java {
 
 dependencies {
     testImplementation(libs.junit)
-    implementation(project(":mockingbird:core"))
+    testImplementation(project(":mockingbird:core"))
     ksp(project(":mockingbird:processor"))
 }
