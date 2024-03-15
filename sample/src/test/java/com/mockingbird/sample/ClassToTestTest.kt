@@ -25,6 +25,9 @@ class ClassToTestTest {
             interfaceToVerify1.performAction1(1)
             interfaceToVerify1.performAction1(2)
             interfaceToVerify2.performAction1(1, "two", "three")
+
+            interfaceToVerify1.verifyNoInvocations()
+            interfaceToVerify2.verifyNoInvocations()
         }
     }
 
@@ -39,6 +42,9 @@ class ClassToTestTest {
             interfaceToVerify1.performAction1(1)
             interfaceToVerify2.performAction1(1, "two", "three")
             interfaceToVerify2.performAction1(2, "three", "four")
+
+            interfaceToVerify1.verifyNoInvocations()
+            interfaceToVerify2.verifyNoInvocations()
         }
     }
 
