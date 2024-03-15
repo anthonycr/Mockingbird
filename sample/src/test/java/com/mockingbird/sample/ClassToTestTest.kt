@@ -21,7 +21,7 @@ class ClassToTestTest {
 
         classToTest.act1()
 
-        interfaceToVerify1.verify {
+        verify(interfaceToVerify1, interfaceToVerify2) {
             interfaceToVerify1.performAction1(1)
             interfaceToVerify1.performAction1(2)
             interfaceToVerify2.performAction1(1, "two", "three")
@@ -34,7 +34,7 @@ class ClassToTestTest {
 
         classToTest.act2()
 
-        interfaceToVerify1.verify {
+        verify(interfaceToVerify1, interfaceToVerify2) {
             interfaceToVerify1.performAction2("test", 1)
             interfaceToVerify1.performAction1(1)
             interfaceToVerify2.performAction1(1, "two", "three")
@@ -48,7 +48,7 @@ class ClassToTestTest {
 
         classToTest.act3()
 
-        interfaceToVerify1.verify {
+        verify(interfaceToVerify1, interfaceToVerify2) {
             interfaceToVerify1.times(2) { interfaceToVerify1.performAction1(1) }
             interfaceToVerify2.times(2) { interfaceToVerify2.performAction1(1, "two", "three") }
         }
@@ -61,5 +61,6 @@ class ClassToTestTest {
         classToTest.act4()
 
         interfaceToVerify1.verifyNoInvocations()
+        interfaceToVerify2.verifyNoInvocations()
     }
 }

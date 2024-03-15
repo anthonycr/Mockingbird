@@ -9,13 +9,20 @@ interface Verifiable {
     var expected: Int
 }
 
-fun Any.verify(block: () -> Unit) {
-    check(this is Verifiable) { "You can only verify interfaces that have been annotated with Verify" }
+fun verify(vararg any: Any, block: () -> Unit) {
+    val verifiable: List<Verifiable> = any.map {
+        check(it is Verifiable) { "You can only verify interfaces that have been annotated with Verify" }
+        it
+    }
 
-    this.verifying = true
-    this.expected = 1
+    verifiable.forEach {
+        it.verifying = true
+        it.expected = 1
+    }
     block()
-    this.verifying = false
+    verifiable.forEach {
+        it.verifying = false
+    }
 }
 
 fun Any.verifyNoInvocations() {
