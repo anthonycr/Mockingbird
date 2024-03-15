@@ -1,6 +1,6 @@
 package com.mockingbird.sample
 
-interface InterfaceToVerify {
+interface InterfaceToVerify1 {
 
     fun performAction1(one: Int)
 

@@ -10,48 +10,56 @@ import org.junit.Test
 class ClassToTestTest {
 
     @Verify
-    val interfaceToVerify: InterfaceToVerify = fake()
+    val interfaceToVerify1: InterfaceToVerify1 = fake()
+
+    @Verify
+    val interfaceToVerify2: InterfaceToVerify2 = fake()
 
     @Test
     fun act1() {
-        val classToTest = ClassToTest(interfaceToVerify)
+        val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
 
         classToTest.act1()
 
-        interfaceToVerify.verify {
-            interfaceToVerify.performAction1(1)
-            interfaceToVerify.performAction1(2)
+        interfaceToVerify1.verify {
+            interfaceToVerify1.performAction1(1)
+            interfaceToVerify1.performAction1(2)
+            interfaceToVerify2.performAction1(1, "two", "three")
         }
     }
 
     @Test
     fun act2() {
-        val classToTest = ClassToTest(interfaceToVerify)
+        val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
 
         classToTest.act2()
 
-        interfaceToVerify.verify {
-            interfaceToVerify.performAction2("test", 1)
+        interfaceToVerify1.verify {
+            interfaceToVerify1.performAction2("test", 1)
+            interfaceToVerify1.performAction1(1)
+            interfaceToVerify2.performAction1(1, "two", "three")
+            interfaceToVerify2.performAction1(2, "three", "four")
         }
     }
 
     @Test
     fun act3() {
-        val classToTest = ClassToTest(interfaceToVerify)
+        val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
 
         classToTest.act3()
 
-        interfaceToVerify.verify {
-            interfaceToVerify.times(2) { interfaceToVerify.performAction1(1) }
+        interfaceToVerify1.verify {
+            interfaceToVerify1.times(2) { interfaceToVerify1.performAction1(1) }
+            interfaceToVerify2.times(2) { interfaceToVerify2.performAction1(1, "two", "three") }
         }
     }
 
     @Test
     fun act4() {
-        val classToTest = ClassToTest(interfaceToVerify)
+        val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
 
         classToTest.act4()
 
-        interfaceToVerify.verifyNoInvocations()
+        interfaceToVerify1.verifyNoInvocations()
     }
 }
