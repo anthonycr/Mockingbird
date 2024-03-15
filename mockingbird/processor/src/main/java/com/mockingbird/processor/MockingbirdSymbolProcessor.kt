@@ -35,8 +35,7 @@ class MockingbirdSymbolProcessor(
             .filterIsInstance<KSClassDeclaration>()
             .associateBy { it.qualifiedName!!.asString() }
             .map { (name, declaration) ->
-                val fakeTypeSpec =
-                    generateFakeImplementation(declaration)//.writeTo(codeGenerator, true)
+                val fakeTypeSpec = generateFakeImplementation(declaration)
 
                 FileSpec.builder(
                     declaration.packageName.asString(),
