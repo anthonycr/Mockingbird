@@ -146,30 +146,29 @@ class MockingbirdSymbolProcessor(
                 funSpec.addParameter(param.name!!.asString(), param.type.toTypeName())
             }
 
+            val functionName = function.qualifiedName!!.asString()
+
             funSpec.beginControlFlow("if (verifying)")
                 .addStatement("val expectedInvocations = invocations.take(expected)")
                 .addStatement("invocations.removeAll(expectedInvocations)")
                 .beginControlFlow("check(expectedInvocations.size == expected)")
                 .addStatement(
-                    "\"Expected %1Lexpected invocations, but got %1L{expectedInvocations.size} instead.\"".noWrap(),
-                    "$"
+                    "\"Expected \$expected invocations, but got \${expectedInvocations.size} instead.\"".noWrap(),
                 )
                 .endControlFlow()
                 .beginControlFlow("expectedInvocations.forEach")
                 .apply {
-                    beginControlFlow("check(it.first == %S)", function.qualifiedName!!.asString())
+                    beginControlFlow("check(it.first == %S)", functionName)
                     addStatement(
-                        "\"Expected function call %1L, %2L{it.first} was called instead\"".noWrap(),
-                        function.qualifiedName!!.asString(),
-                        "$"
+                        "\"Expected function call %1L, \${it.first} was called instead\"".noWrap(),
+                        functionName,
                     )
                     endControlFlow()
                     function.parameters.forEachIndexed { index, value ->
                         val name = value.name!!.asString()
                         beginControlFlow("check(%1L == it.second[%2L])", name, index)
                         addStatement(
-                            "\"Expected argument %1L%2L, found %1L{it.second[%3L]} instead.\"".noWrap(),
-                            "$",
+                            "\"Expected argument \$%1L, found \${it.second[%2L]} instead.\"".noWrap(),
                             name,
                             index
                         )
@@ -180,7 +179,7 @@ class MockingbirdSymbolProcessor(
                 .nextControlFlow("else")
                 .addStatement(
                     "invocations.add(Pair(%1S, listOf(%2L)))",
-                    function.qualifiedName!!.asString(),
+                    functionName,
                     function.parameters.joinToString { it.name!!.asString() })
                 .endControlFlow()
 
