@@ -6,9 +6,12 @@ import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
+import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSNode
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
@@ -29,9 +32,13 @@ class MockingbirdSymbolProcessor(
 ) : SymbolProcessor {
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        val fakes = resolver.getSymbolsWithAnnotation(Verify::class.qualifiedName!!)
+        val annotated = resolver.getSymbolsWithAnnotation(Verify::class.qualifiedName!!)
+
+        val fakes = annotated
+            .check("Only properties can be annotated with Verify") { it is KSPropertyDeclaration }
             .filterIsInstance<KSPropertyDeclaration>()
             .map { it.type.resolve().declaration }
+            .check("Only interfaces can be verified") { it is KSClassDeclaration && it.classKind == ClassKind.INTERFACE }
             .filterIsInstance<KSClassDeclaration>()
             .associateBy { it.qualifiedName!!.asString() }
             .map { (name, declaration) ->
@@ -186,11 +193,34 @@ class MockingbirdSymbolProcessor(
             implementationTypeSpec.addFunction(funSpec.build())
         }
 
-
         return implementationTypeSpec.build()
     }
 
-    private fun String.noWrap(): String = this.replace(" ", "·")
+    private fun checkAll(
+        checkList: List<KSAnnotated>,
+        check: (KSAnnotated) -> Boolean,
+        message: String
+    ) {
+        checkList.forEach {
+            if (!check(it)) {
+                logger.error(message, it)
+            }
+        }
+    }
 
+    private fun <T : KSNode> Sequence<T>.check(
+        message: String,
+        condition: (T) -> Boolean
+    ): Sequence<T> = filter {
+        val passed = condition(it)
+
+        if (!passed) {
+            logger.error(message, it)
+        }
+
+        passed
+    }
+
+    private fun String.noWrap(): String = this.replace(" ", "·")
 
 }
