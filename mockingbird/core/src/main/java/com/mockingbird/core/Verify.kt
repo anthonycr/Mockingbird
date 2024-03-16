@@ -1,4 +1,4 @@
 package com.mockingbird.core
 
-@Target(AnnotationTarget.PROPERTY, AnnotationTarget.LOCAL_VARIABLE)
+@Target(AnnotationTarget.PROPERTY)
 annotation class Verify
