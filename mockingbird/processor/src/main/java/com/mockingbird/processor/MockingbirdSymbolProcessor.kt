@@ -196,18 +196,6 @@ class MockingbirdSymbolProcessor(
         return implementationTypeSpec.build()
     }
 
-    private fun checkAll(
-        checkList: List<KSAnnotated>,
-        check: (KSAnnotated) -> Boolean,
-        message: String
-    ) {
-        checkList.forEach {
-            if (!check(it)) {
-                logger.error(message, it)
-            }
-        }
-    }
-
     private fun <T : KSNode> Sequence<T>.check(
         message: String,
         condition: (T) -> Boolean
