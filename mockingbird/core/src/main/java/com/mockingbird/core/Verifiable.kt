@@ -33,7 +33,6 @@ fun Any.verifyNoInvocations() {
     this.verifying = false
 }
 
-
 fun Any.times(times: Int, block: () -> Unit) {
     check(this is Verifiable) { "You can only verify interfaces that have been annotated with Verify" }
 

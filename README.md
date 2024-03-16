@@ -1,8 +1,9 @@
 # Mockingbird
 
 A minimalist faking framework exclusively for verifying interactions. It generates fake
-implementations of interfaces that can be verified during a test. It does not allow mocking behavior
-or return values, and does not support mocking concrete classes.
+implementations of interfaces that can be verified during a test using Kotlin Symbol Processing
+(KSP). It does not allow mocking behavior or return values, and does not support mocking concrete
+classes.
 
 ## Usage
 
