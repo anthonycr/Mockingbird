@@ -1,6 +1,6 @@
 [versions]
 junit = "4.13.2"
-jetbrainsKotlinJvm = "1.9.0"
+jetbrainsKotlinJvm = "1.9.23"
 kotlinpoet = "1.16.0"
 
 [libraries]
@@ -11,6 +11,6 @@ kotlinpoet-ksp = { group = "com.squareup", name = "kotlinpoet-ksp", version.ref 
 compiletesting = { group = "com.github.tschuchortdev", name = "kotlin-compile-testing-ksp", version = "1.5.0" }
 
 [plugins]
-ksp-plugin = { id = "com.google.devtools.ksp", version = "1.9.21-1.0.15" }
+ksp-plugin = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 
