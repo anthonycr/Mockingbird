@@ -27,6 +27,7 @@ class MockingbirdSymbolProcessorTest {
         val result = compile(listOf(nonPropertyAnnotatedSource))
 
         Assert.assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, result.exitCode)
+        Assert.assertTrue(result.messages.contains("/Test1.kt:5: Only properties can be annotated with Verify"))
     }
 
     @Test
@@ -34,6 +35,7 @@ class MockingbirdSymbolProcessorTest {
         val result = compile(listOf(nonInterfaceAnnotatedSource))
 
         Assert.assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, result.exitCode)
+        Assert.assertTrue(result.messages.contains("/Test2.kt:3: Only interfaces can be verified"))
     }
 
     @Test
