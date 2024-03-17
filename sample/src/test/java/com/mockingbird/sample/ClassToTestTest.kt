@@ -52,7 +52,7 @@ class ClassToTestTest {
         verify(interfaceToVerify1, interfaceToVerify2) {
             interfaceToVerify1.performAction2("test", 1)
             interfaceToVerify1.performAction1(1)
-            interfaceToVerify2.performAction1(1, "two", "three")
+            interfaceToVerify2.performAction2()
             interfaceToVerify2.performAction1(2, "three", "four")
 
             interfaceToVerify1.verifyNoInvocations()
