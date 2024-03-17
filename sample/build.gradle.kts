@@ -1,12 +1,6 @@
 plugins {
-    id("java-library")
+    kotlin("jvm")
     alias(libs.plugins.ksp.plugin)
-    alias(libs.plugins.jetbrainsKotlinJvm)
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
 }
 
 dependencies {
