@@ -8,6 +8,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 ksp-api = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version = "1.9.21-1.0.15" }
 kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }
 kotlinpoet-ksp = { group = "com.squareup", name = "kotlinpoet-ksp", version.ref = "kotlinpoet" }
+compiletesting = { group = "com.github.tschuchortdev", name = "kotlin-compile-testing-ksp", version = "1.5.0" }
 
 [plugins]
 ksp-plugin = { id = "com.google.devtools.ksp", version = "1.9.21-1.0.15" }
