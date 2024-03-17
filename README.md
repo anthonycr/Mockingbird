@@ -20,6 +20,10 @@ Within your test, add the following annotation to a property that you wish to ve
 property you are verifying must be an interface with all functions returning `Unit`.
 
 ```kotlin
+import com.mockingbird.core.Verify
+import com.mockingbird.core.fake
+import com.mockingbird.core.verify
+
 interface MyInterface {
   fun doThing(value: String)
 }
