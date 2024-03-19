@@ -25,10 +25,10 @@ class ClassToTestTest {
             interfaceToVerify1.performAction1(1)
             interfaceToVerify1.performAction1(2)
             interfaceToVerify2.performAction1(1, "two", "three")
-
-            interfaceToVerify1.verifyNoInvocations()
-            interfaceToVerify2.verifyNoInvocations()
         }
+
+        interfaceToVerify1.verifyNoInvocations()
+        interfaceToVerify2.verifyNoInvocations()
     }
 
     @Test(expected = IllegalStateException::class)
@@ -54,10 +54,10 @@ class ClassToTestTest {
             interfaceToVerify1.performAction1(1)
             interfaceToVerify2.performAction2()
             interfaceToVerify2.performAction1(2, "three", "four")
-
-            interfaceToVerify1.verifyNoInvocations()
-            interfaceToVerify2.verifyNoInvocations()
         }
+
+        interfaceToVerify1.verifyNoInvocations()
+        interfaceToVerify2.verifyNoInvocations()
     }
 
     @Test(expected = IllegalStateException::class)
@@ -114,5 +114,29 @@ class ClassToTestTest {
 
         // act3 function call actually has invocations
         interfaceToVerify1.verifyNoInvocations()
+    }
+
+    @Test(expected = IllegalStateException::class)
+    fun `double verify expected failure`() {
+        val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
+
+        classToTest.act3()
+
+        verify(interfaceToVerify1) {
+            verify(interfaceToVerify1) {
+                // Won't get here
+            }
+        }
+    }
+
+    @Test(expected = IllegalStateException::class)
+    fun `verifyNoInvocations within verify expected failure`() {
+        val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
+
+        classToTest.act3()
+
+        verify(interfaceToVerify1) {
+            interfaceToVerify1.verifyNoInvocations()
+        }
     }
 }
