@@ -29,4 +29,8 @@ class ClassToTest(
         // Do nothing
     }
 
+    fun act5() {
+        interfaceToVerify1.performAction3(Exception("test"))
+    }
+
 }

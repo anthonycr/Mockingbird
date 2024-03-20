@@ -4,7 +4,9 @@ import com.mockingbird.core.Verify
 import com.mockingbird.core.fake
 import com.mockingbird.core.times
 import com.mockingbird.core.verify
+import com.mockingbird.core.verifyIgnoreParams
 import com.mockingbird.core.verifyNoInvocations
+import com.mockingbird.core.verifyParams
 import org.junit.Test
 
 class ClassToTestTest {
@@ -137,6 +139,56 @@ class ClassToTestTest {
 
         verify(interfaceToVerify1) {
             interfaceToVerify1.verifyNoInvocations()
+        }
+    }
+
+    @Test(expected = IllegalStateException::class)
+    fun `verification of inequitable type expected failure`() {
+        val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
+
+        classToTest.act5()
+
+        verify(interfaceToVerify1) {
+            interfaceToVerify1.performAction3(Exception("test"))
+        }
+    }
+
+    @Test
+    fun `verification of inequitable type with verifyIgnoreParameter`() {
+        val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
+
+        classToTest.act5()
+
+        verify(interfaceToVerify1) {
+            interfaceToVerify1.verifyIgnoreParams { performAction3(Exception("test")) }
+        }
+    }
+
+    @Test
+    fun `verification of inequitable type with verifyParams`() {
+        val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
+
+        classToTest.act5()
+
+        verify(interfaceToVerify1) {
+            interfaceToVerify1.verifyParams(
+                verifier = { (it[0] as? Exception)?.message == "test" },
+                invocation = { performAction3(Exception("test")) }
+            )
+        }
+    }
+
+    @Test(expected = IllegalStateException::class)
+    fun `verification of inequitable type with verifyParams expected failure`() {
+        val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
+
+        classToTest.act5()
+
+        verify(interfaceToVerify1) {
+            interfaceToVerify1.verifyParams(
+                verifier = { (it[0] as? Exception)?.message == "test1" },
+                invocation = { performAction3(Exception("test")) }
+            )
         }
     }
 }
