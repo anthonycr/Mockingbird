@@ -6,4 +6,6 @@ interface InterfaceToVerify1 {
 
     fun performAction2(one: String, two: Long)
 
+    fun performAction3(exception: Exception)
+
 }

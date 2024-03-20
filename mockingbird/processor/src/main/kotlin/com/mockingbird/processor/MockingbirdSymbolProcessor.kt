@@ -13,11 +13,15 @@ import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.mockingbird.core.Verifiable
 import com.mockingbird.core.Verify
 import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.ExperimentalKotlinPoetApi
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.LambdaTypeName
+import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.TypeVariableName
 import com.squareup.kotlinpoet.asClassName
@@ -25,6 +29,7 @@ import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
 
+@OptIn(ExperimentalKotlinPoetApi::class)
 class MockingbirdSymbolProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger
@@ -125,6 +130,25 @@ class MockingbirdSymbolProcessor(
 
         implementationTypeSpec.addProperty(
             PropertySpec.builder(
+                "nextInvocationParamVerifier",
+                LambdaTypeName.get(
+                    parameters = arrayOf(
+                        ClassName(
+                            "kotlin.collections",
+                            "List"
+                        ).parameterizedBy(Any::class.asTypeName())
+                    ),
+                    returnType = Boolean::class.asTypeName()
+                ).copy(nullable = true)
+            )
+                .initializer("null")
+                .addModifiers(KModifier.OVERRIDE)
+                .mutable(true)
+                .build()
+        )
+
+        implementationTypeSpec.addProperty(
+            PropertySpec.builder(
                 "verifying",
                 Boolean::class.asClassName()
             )
@@ -169,6 +193,13 @@ class MockingbirdSymbolProcessor(
                         "\"Expected function call %1L, \${it.first} was called instead\"".noWrap(),
                         functionName,
                     )
+                    endControlFlow()
+                    beginControlFlow("nextInvocationParamVerifier?.let { verifier ->")
+                    beginControlFlow("check(verifier(it.second))")
+                    addStatement("\"Unknown parameter was expected and was not found\"")
+                    endControlFlow()
+                    addStatement("nextInvocationParamVerifier = null")
+                    addStatement("return")
                     endControlFlow()
                     function.parameters.forEachIndexed { index, value ->
                         val name = value.name!!.asString()
