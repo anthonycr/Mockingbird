@@ -29,7 +29,6 @@ import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
 
-@OptIn(ExperimentalKotlinPoetApi::class)
 class MockingbirdSymbolProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger
@@ -57,7 +56,7 @@ class MockingbirdSymbolProcessor(
                     .addType(fakeTypeSpec)
                     .build()
                     .writeTo(codeGenerator, true)
-                logger.warn("$name $declaration")
+                logger.info("Generating fake for: $name")
                 Pair(declaration, fakeTypeSpec)
             }
 
