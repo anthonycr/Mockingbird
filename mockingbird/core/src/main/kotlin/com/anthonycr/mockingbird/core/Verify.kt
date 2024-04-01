@@ -1,4 +1,4 @@
-package com.mockingbird.core
+package com.anthonycr.mockingbird.core
 
 @Target(AnnotationTarget.PROPERTY)
 annotation class Verify

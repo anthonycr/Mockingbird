@@ -1,4 +1,4 @@
-package com.mockingbird.sample
+package com.anthonycr.mockingbird.sample
 
 interface InterfaceToVerify2 {
 

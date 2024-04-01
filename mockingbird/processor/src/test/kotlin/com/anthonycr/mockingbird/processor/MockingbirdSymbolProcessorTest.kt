@@ -1,4 +1,4 @@
-package com.mockingbird.processor
+package com.anthonycr.mockingbird.processor
 
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile

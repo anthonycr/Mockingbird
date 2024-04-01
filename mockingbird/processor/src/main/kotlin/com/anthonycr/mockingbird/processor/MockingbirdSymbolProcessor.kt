@@ -1,4 +1,4 @@
-package com.mockingbird.processor
+package com.anthonycr.mockingbird.processor
 
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
@@ -10,8 +10,8 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSNode
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
-import com.mockingbird.core.Verifiable
-import com.mockingbird.core.Verify
+import com.anthonycr.mockingbird.core.Verifiable
+import com.anthonycr.mockingbird.core.Verify
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.ExperimentalKotlinPoetApi
 import com.squareup.kotlinpoet.FileSpec
@@ -70,7 +70,7 @@ class MockingbirdSymbolProcessor(
     private fun generateFakeFunctions(
         fakes: Map<KSClassDeclaration, TypeSpec>
     ): FileSpec {
-        return FileSpec.builder("com.mockingbird.core", "Fakes")
+        return FileSpec.builder("com.anthonycr.mockingbird.core", "Fakes")
             .addFunction(
                 FunSpec.builder("fake")
                     .addTypeVariable(TypeVariableName("reified T"))

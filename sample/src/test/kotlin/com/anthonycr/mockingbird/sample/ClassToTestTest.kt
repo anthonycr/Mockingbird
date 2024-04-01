@@ -1,12 +1,12 @@
-package com.mockingbird.sample
+package com.anthonycr.mockingbird.sample
 
-import com.mockingbird.core.Verify
-import com.mockingbird.core.fake
-import com.mockingbird.core.times
-import com.mockingbird.core.verify
-import com.mockingbird.core.verifyIgnoreParams
-import com.mockingbird.core.verifyNoInvocations
-import com.mockingbird.core.verifyParams
+import com.anthonycr.mockingbird.core.Verify
+import com.anthonycr.mockingbird.core.fake
+import com.anthonycr.mockingbird.core.times
+import com.anthonycr.mockingbird.core.verify
+import com.anthonycr.mockingbird.core.verifyIgnoreParams
+import com.anthonycr.mockingbird.core.verifyNoInvocations
+import com.anthonycr.mockingbird.core.verifyParams
 import org.junit.Test
 
 class ClassToTestTest {

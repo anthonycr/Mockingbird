@@ -35,9 +35,9 @@ Within your test, add the following annotation to a property that you wish to ve
 property you are verifying must be an interface with all functions returning `Unit`.
 
 ```kotlin
-import com.mockingbird.core.Verify
-import com.mockingbird.core.fake
-import com.mockingbird.core.verify
+import com.anthonycr.mockingbird.core.Verify
+import com.anthonycr.mockingbird.core.fake
+import com.anthonycr.mockingbird.core.verify
 
 interface MyInterface {
   fun doThing(value: String)
@@ -59,5 +59,5 @@ class MyTest {
 }
 ```
 
-Note: The `com.mockingbird.core.fake` function is generated at compile time, so it will not be
+Note: The `com.anthonycr.mockingbird.core.fake` function is generated at compile time, so it will not be
 available to import until KSP runs.

@@ -1,10 +1,10 @@
-package com.mockingbird.processor
+package com.anthonycr.mockingbird.processor
 
 import com.tschuchort.compiletesting.SourceFile
 
 val nonPropertyAnnotatedSource = SourceFile.kotlin(
     "Test1.kt", """
-    import com.mockingbird.core.Verify
+    import com.anthonycr.mockingbird.core.Verify
 
     class Test1 {
         @Verify
@@ -16,7 +16,7 @@ val nonPropertyAnnotatedSource = SourceFile.kotlin(
 )
 
 val nonInterfaceAnnotatedSource = SourceFile.kotlin("Test2.kt", """
-    import com.mockingbird.core.Verify
+    import com.anthonycr.mockingbird.core.Verify
 
     class NotAnInterface {
         fun aFunction() {
@@ -31,7 +31,7 @@ val nonInterfaceAnnotatedSource = SourceFile.kotlin("Test2.kt", """
 """.trimIndent())
 
 val validInterfaceAnnotatedSource = SourceFile.kotlin("Test3.kt", """
-    import com.mockingbird.core.Verify
+    import com.anthonycr.mockingbird.core.Verify
     
     interface AnInterface {
         fun aFunction()
