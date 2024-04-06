@@ -10,6 +10,7 @@ ksp-api = { group = "com.google.devtools.ksp", name = "symbol-processing-api", v
 kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }
 kotlinpoet-ksp = { group = "com.squareup", name = "kotlinpoet-ksp", version.ref = "kotlinpoet" }
 compiletesting = { group = "com.github.tschuchortdev", name = "kotlin-compile-testing-ksp", version = "1.5.0" }
+mockk = { group = "io.mockk", name = "mockk", version = "1.13.10" }
 
 [plugins]
 ksp-plugin = { id = "com.google.devtools.ksp", version.ref = "ksp" }
