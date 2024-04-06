@@ -23,3 +23,5 @@ rootProject.name = "Mockingbird"
 include(":mockingbird:core")
 include(":mockingbird:processor")
 include(":sample")
+include(":benchmark-mockk")
+include(":benchmark-mockingbird")
