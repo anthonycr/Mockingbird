@@ -26,7 +26,7 @@ Include the following dependencies in your `build.gradle.kts` file.
 
 ```kotlin
 testImplementation(project(":mockingbird:core")
-ksp(project(":mockingbird:processor"))
+kspTest(project(":mockingbird:processor"))
 ```
 
 Make sure you have the KSP Gradle plugin enabled as well.
