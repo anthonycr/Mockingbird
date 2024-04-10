@@ -5,6 +5,5 @@ plugins {
 
 dependencies {
     testImplementation(libs.junit)
-    testImplementation(project(":mockingbird:core"))
-    kspTest(project(":mockingbird:processor"))
+    testImplementation(libs.mockk)
 }
