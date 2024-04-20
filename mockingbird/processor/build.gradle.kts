@@ -16,6 +16,7 @@ dependencies {
 }
 
 mavenPublishing {
+    signAllPublications()
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
     coordinates(artifactId = "processor")
 }
