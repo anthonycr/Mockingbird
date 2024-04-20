@@ -1,3 +1,5 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
     kotlin("jvm")
     alias(libs.plugins.mavenPublish)
@@ -14,5 +16,6 @@ dependencies {
 }
 
 mavenPublishing {
+    publishToMavenCentral(SonatypeHost.DEFAULT, automaticRelease = true)
     coordinates(artifactId = "processor")
 }
