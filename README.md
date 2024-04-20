@@ -22,11 +22,12 @@ effects that are most often verified by a mocking framework.
 
 ## Usage
 
-Include the following dependencies in your `build.gradle.kts` file.
+Mockingbird is available on Maven Central. Include the following dependencies in your
+`build.gradle.kts` file.
 
 ```kotlin
-testImplementation(project(":mockingbird:core")
-kspTest(project(":mockingbird:processor"))
+testImplementation(project("com.anthonycr.mockingbird:core:<latest_version>")
+kspTest(project("com.anthonycr.mockingbird:processor:<latest_version>"))
 ```
 
 Make sure you have the KSP Gradle plugin enabled as well.
