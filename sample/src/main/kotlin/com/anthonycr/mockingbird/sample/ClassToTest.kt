@@ -33,4 +33,8 @@ class ClassToTest(
         interfaceToVerify1.performAction3(Exception("test"))
     }
 
+    fun act6() {
+        interfaceToVerify1.performAction4("one", 2, Exception("test"))
+    }
+
 }

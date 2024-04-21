@@ -8,4 +8,6 @@ interface InterfaceToVerify1 {
 
     fun performAction3(exception: Exception)
 
+    fun performAction4(one: String, two: Int, exception: Exception)
+
 }
