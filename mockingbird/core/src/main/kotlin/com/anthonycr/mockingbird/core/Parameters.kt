@@ -35,8 +35,8 @@ fun <T, P0> T.verifyParams(
     p0: Pair<P0, (P0, P0) -> Boolean>
 ) {
     check(this is Verifiable) { MUST_BE_VERIFIABLE }
-    check(this.verifying) { MUST_BE_VERIFYING }
-    this.nextInvocationParamVerifier = listOf { e, a -> p0.second(e as P0, a as P0) }
+    check(this._mockingbird_verifying) { MUST_BE_VERIFYING }
+    this._mockingbird_paramMatcher = listOf { e, a -> p0.second(e as P0, a as P0) }
     func(p0.first)
 }
 
@@ -46,8 +46,8 @@ fun <T, P0, P1> T.verifyParams(
     p1: Pair<P1, (P1, P1) -> Boolean>
 ) {
     check(this is Verifiable) { MUST_BE_VERIFIABLE }
-    check(this.verifying) { MUST_BE_VERIFYING }
-    this.nextInvocationParamVerifier = listOf(
+    check(this._mockingbird_verifying) { MUST_BE_VERIFYING }
+    this._mockingbird_paramMatcher = listOf(
         { e, a -> p0.second(e as P0, a as P0) },
         { e, a -> p1.second(e as P1, a as P1) }
     )
@@ -61,8 +61,8 @@ fun <T, P0, P1, P2> T.verifyParams(
     p2: Pair<P2, (P2, P2) -> Boolean>
 ) {
     check(this is Verifiable) { MUST_BE_VERIFIABLE }
-    check(this.verifying) { MUST_BE_VERIFYING }
-    this.nextInvocationParamVerifier = listOf(
+    check(this._mockingbird_verifying) { MUST_BE_VERIFYING }
+    this._mockingbird_paramMatcher = listOf(
         { e, a -> p0.second(e as P0, a as P0) },
         { e, a -> p1.second(e as P1, a as P1) },
         { e, a -> p2.second(e as P2, a as P2) }
@@ -78,8 +78,8 @@ fun <T, P0, P1, P2, P3> T.verifyParams(
     p3: Pair<P3, (P3, P3) -> Boolean>
 ) {
     check(this is Verifiable) { MUST_BE_VERIFIABLE }
-    check(this.verifying) { MUST_BE_VERIFYING }
-    this.nextInvocationParamVerifier = listOf(
+    check(this._mockingbird_verifying) { MUST_BE_VERIFYING }
+    this._mockingbird_paramMatcher = listOf(
         { e, a -> p0.second(e as P0, a as P0) },
         { e, a -> p1.second(e as P1, a as P1) },
         { e, a -> p2.second(e as P2, a as P2) },
@@ -97,8 +97,8 @@ fun <T, P0, P1, P2, P3, P4> T.verifyParams(
     p4: Pair<P4, (P4, P4) -> Boolean>
 ) {
     check(this is Verifiable) { MUST_BE_VERIFIABLE }
-    check(this.verifying) { MUST_BE_VERIFYING }
-    this.nextInvocationParamVerifier = listOf(
+    check(this._mockingbird_verifying) { MUST_BE_VERIFYING }
+    this._mockingbird_paramMatcher = listOf(
         { e, a -> p0.second(e as P0, a as P0) },
         { e, a -> p1.second(e as P1, a as P1) },
         { e, a -> p2.second(e as P2, a as P2) },
@@ -110,7 +110,7 @@ fun <T, P0, P1, P2, P3, P4> T.verifyParams(
 
 fun <T : Any> T.verifyIgnoreParams(invocation: T.() -> Unit) {
     check(this is Verifiable) { MUST_BE_VERIFIABLE }
-    check(this.verifying) { "You can only call verifyIgnoreParams inside a verify block" }
-    this.nextInvocationParamVerifier = listOf { _, _ -> true }
+    check(this._mockingbird_verifying) { "You can only call verifyIgnoreParams inside a verify block" }
+    this._mockingbird_paramMatcher = listOf { _, _ -> true }
     this.invocation()
 }
