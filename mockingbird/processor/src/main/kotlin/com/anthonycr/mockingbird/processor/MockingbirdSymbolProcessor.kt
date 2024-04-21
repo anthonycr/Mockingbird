@@ -114,11 +114,12 @@ class MockingbirdSymbolProcessor(
 
         implementationTypeSpec.addProperty(
             PropertySpec.builder(
-                "invocations",
+                "_mockingbird_invocations",
                 ClassName("kotlin.collections", "MutableList").parameterizedBy(
                     Pair::class.asTypeName().parameterizedBy(
                         String::class.asTypeName(),
-                        List::class.asClassName().parameterizedBy(Any::class.asTypeName())
+                        List::class.asClassName()
+                            .parameterizedBy(Any::class.asTypeName().copy(nullable = true))
                     )
                 )
             )
@@ -129,18 +130,21 @@ class MockingbirdSymbolProcessor(
 
         implementationTypeSpec.addProperty(
             PropertySpec.builder(
-                "nextInvocationParamVerifier",
-                LambdaTypeName.get(
-                    parameters = arrayOf(
-                        ClassName(
-                            "kotlin.collections",
-                            "List"
-                        ).parameterizedBy(Any::class.asTypeName())
-                    ),
-                    returnType = Boolean::class.asTypeName()
-                ).copy(nullable = true)
+                "_mockingbird_paramMatcher",
+                ClassName(
+                    "kotlin.collections",
+                    "List"
+                ).parameterizedBy(
+                    LambdaTypeName.get(
+                        parameters = arrayOf(
+                            Any::class.asTypeName().copy(nullable = true),
+                            Any::class.asTypeName().copy(nullable = true)
+                        ),
+                        returnType = Boolean::class.asTypeName()
+                    )
+                )
             )
-                .initializer("null")
+                .initializer("listOf { e, a -> e == a }")
                 .addModifiers(KModifier.OVERRIDE)
                 .mutable(true)
                 .build()
@@ -148,7 +152,7 @@ class MockingbirdSymbolProcessor(
 
         implementationTypeSpec.addProperty(
             PropertySpec.builder(
-                "verifying",
+                "_mockingbird_verifying",
                 Boolean::class.asClassName()
             )
                 .initializer("false")
@@ -158,7 +162,7 @@ class MockingbirdSymbolProcessor(
 
         implementationTypeSpec.addProperty(
             PropertySpec.builder(
-                "expected",
+                "_mockingbird_expected",
                 Int::class.asClassName()
             )
                 .initializer("1")
@@ -177,12 +181,12 @@ class MockingbirdSymbolProcessor(
 
             val functionName = function.qualifiedName!!.asString()
 
-            funSpec.beginControlFlow("if (verifying)")
-                .addStatement("val expectedInvocations = invocations.take(expected)")
-                .addStatement("invocations.removeAll(expectedInvocations)")
-                .beginControlFlow("check(expectedInvocations.size == expected)")
+            funSpec.beginControlFlow("if (_mockingbird_verifying)")
+                .addStatement("val expectedInvocations = _mockingbird_invocations.take(_mockingbird_expected)")
+                .addStatement("_mockingbird_invocations.removeAll(expectedInvocations)")
+                .beginControlFlow("check(expectedInvocations.size == _mockingbird_expected)")
                 .addStatement(
-                    "\"Expected \$expected invocations, but got \${expectedInvocations.size} instead.\"".noWrap(),
+                    "\"Expected \$_mockingbird_expected invocations, but got \${expectedInvocations.size} instead.\"".noWrap(),
                 )
                 .endControlFlow()
                 .beginControlFlow("expectedInvocations.forEach")
@@ -193,16 +197,16 @@ class MockingbirdSymbolProcessor(
                         functionName,
                     )
                     endControlFlow()
-                    beginControlFlow("nextInvocationParamVerifier?.let { verifier ->")
-                    beginControlFlow("check(verifier(it.second))")
-                    addStatement("\"Unknown parameter was expected and was not found\"")
-                    endControlFlow()
-                    addStatement("nextInvocationParamVerifier = null")
-                    addStatement("return")
+                    beginControlFlow("val allParamVerifier = _mockingbird_paramMatcher.firstOrNull()?.takeIf { _ ->")
+                    addStatement("_mockingbird_paramMatcher.size != it.second.size")
                     endControlFlow()
                     function.parameters.forEachIndexed { index, value ->
                         val name = value.name!!.asString()
-                        beginControlFlow("check(%1L == it.second[%2L])", name, index)
+                        beginControlFlow(
+                            "check((allParamVerifier ?: _mockingbird_paramMatcher[%1L]).invoke(%2L, it.second[%1L]))",
+                            index,
+                            name
+                        )
                         addStatement(
                             "\"Expected argument \$%1L, found \${it.second[%2L]} instead.\"".noWrap(),
                             name,
@@ -210,11 +214,12 @@ class MockingbirdSymbolProcessor(
                         )
                         endControlFlow()
                     }
+                    addStatement("_mockingbird_paramMatcher = listOf { e, a -> e == a }")
                 }
                 .endControlFlow()
                 .nextControlFlow("else")
                 .addStatement(
-                    "invocations.add(Pair(%1S, listOf(%2L)))",
+                    "_mockingbird_invocations.add(Pair(%1S, listOf(%2L)))",
                     functionName,
                     function.parameters.joinToString { it.name!!.asString() })
                 .endControlFlow()

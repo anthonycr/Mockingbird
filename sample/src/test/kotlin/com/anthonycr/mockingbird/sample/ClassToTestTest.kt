@@ -1,6 +1,9 @@
 package com.anthonycr.mockingbird.sample
 
 import com.anthonycr.mockingbird.core.Verify
+import com.anthonycr.mockingbird.core.any
+import com.anthonycr.mockingbird.core.eq
+import com.anthonycr.mockingbird.core.sameAs
 import com.anthonycr.mockingbird.core.fake
 import com.anthonycr.mockingbird.core.times
 import com.anthonycr.mockingbird.core.verify
@@ -172,8 +175,8 @@ class ClassToTestTest {
 
         verify(interfaceToVerify1) {
             interfaceToVerify1.verifyParams(
-                verifier = { (it[0] as? Exception)?.message == "test" },
-                invocation = { performAction3(Exception("test")) }
+                func = InterfaceToVerify1::performAction3,
+                p0 = sameAs(Exception("test")) { e, a -> e.message == a.message }
             )
         }
     }
@@ -186,8 +189,24 @@ class ClassToTestTest {
 
         verify(interfaceToVerify1) {
             interfaceToVerify1.verifyParams(
-                verifier = { (it[0] as? Exception)?.message == "test1" },
-                invocation = { performAction3(Exception("test")) }
+                func = InterfaceToVerify1::performAction3,
+                p0 = sameAs(Exception("test1")) { e, a -> e.message == a.message }
+            )
+        }
+    }
+
+    @Test
+    fun `verification of multiple types with verifyParams`() {
+        val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
+
+        classToTest.act6()
+
+        verify(interfaceToVerify1) {
+            interfaceToVerify1.verifyParams(
+                func = InterfaceToVerify1::performAction4,
+                p0 = eq("one"),
+                p1 = any(1),
+                p2 = sameAs(Exception("test")) { e, a -> e.message == a.message }
             )
         }
     }

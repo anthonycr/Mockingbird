@@ -1,59 +1,47 @@
+@file:Suppress("PropertyName")
+
 package com.anthonycr.mockingbird.core
 
 interface Verifiable {
 
-    val invocations: MutableList<Pair<String, List<Any>>>
+    val _mockingbird_invocations: MutableList<Pair<String, List<Any?>>>
 
-    var nextInvocationParamVerifier: ((List<Any>) -> Boolean)?
+    var _mockingbird_paramMatcher: List<(Any?, Any?) -> Boolean>
 
-    var verifying: Boolean
+    var _mockingbird_verifying: Boolean
 
-    var expected: Int
+    var _mockingbird_expected: Int
 }
 
 fun verify(vararg any: Any, block: () -> Unit) {
     val verifiable: List<Verifiable> = any.map {
-        check(it is Verifiable) { "You can only verify interfaces that have been annotated with Verify" }
+        check(it is Verifiable) { MUST_BE_VERIFIABLE }
         it
     }
 
     verifiable.forEach {
-        check(!it.verifying) { "Do not call verify within another verify block" }
-        it.verifying = true
-        it.expected = 1
+        check(!it._mockingbird_verifying) { "Do not call verify within another verify block" }
+        it._mockingbird_verifying = true
+        it._mockingbird_expected = 1
     }
     block()
     verifiable.forEach {
-        it.verifying = false
+        it._mockingbird_verifying = false
     }
 }
 
-fun <T : Any> T.verifyParams(verifier: (List<Any>) -> Boolean, invocation: T.() -> Unit) {
-    check(this is Verifiable) { "You can only verify interfaces that have been annotated with Verify" }
-    check(this.verifying) { "You can only call verifyParams inside a verify block" }
-    this.nextInvocationParamVerifier = verifier
-    this.invocation()
-}
-
-fun <T : Any> T.verifyIgnoreParams(invocation: T.() -> Unit) {
-    check(this is Verifiable) { "You can only verify interfaces that have been annotated with Verify" }
-    check(this.verifying) { "You can only call verifyIgnoreParams inside a verify block" }
-    this.nextInvocationParamVerifier = { true }
-    this.invocation()
-}
-
 fun Any.verifyNoInvocations() {
-    check(this is Verifiable) { "You can only verify interfaces that have been annotated with Verify" }
-    check(!this.verifying) { "Do not call verifyNoInvocations from within a verify block" }
+    check(this is Verifiable) { MUST_BE_VERIFIABLE }
+    check(!this._mockingbird_verifying) { "Do not call verifyNoInvocations from within a verify block" }
 
-    this.verifying = true
-    check(this.invocations.isEmpty()) { "Expected no invocations, but found ${this.invocations.size}" }
-    this.verifying = false
+    this._mockingbird_verifying = true
+    check(this._mockingbird_invocations.isEmpty()) { "Expected no invocations, but found ${this._mockingbird_invocations.size}" }
+    this._mockingbird_verifying = false
 }
 
 fun Any.times(times: Int, block: () -> Unit) {
-    check(this is Verifiable) { "You can only verify interfaces that have been annotated with Verify" }
+    check(this is Verifiable) { MUST_BE_VERIFIABLE }
 
-    this.expected = times
+    this._mockingbird_expected = times
     block()
 }
