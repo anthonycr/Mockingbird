@@ -1,7 +1,7 @@
 package com.anthonycr.benchmark
 
 import com.anthonycr.mockingbird.core.Verify
-import com.anthonycr.mockingbird.core.eq
+import com.anthonycr.mockingbird.core.sameAs
 import com.anthonycr.mockingbird.core.fake
 import com.anthonycr.mockingbird.core.verify
 import com.anthonycr.mockingbird.core.verifyParams
@@ -80,7 +80,7 @@ class BenchmarkTest {
             interface6.doThing("test1", true, 1, 1)
             interface7.verifyParams(
                 func = Interface7::doThing,
-                p0 = eq(Exception("test1")) { e, a -> e.message == a.message }
+                p0 = sameAs(Exception("test1")) { e, a -> e.message == a.message }
             )
             interface8.doThing(Model1("test1", 1, true))
             interface9.doThing(
