@@ -136,12 +136,15 @@ class MockingbirdSymbolProcessor(
                     "List"
                 ).parameterizedBy(
                     LambdaTypeName.get(
-                        parameters = arrayOf(Any::class.asTypeName().copy(nullable = true)),
+                        parameters = arrayOf(
+                            Any::class.asTypeName().copy(nullable = true),
+                            Any::class.asTypeName().copy(nullable = true)
+                        ),
                         returnType = Boolean::class.asTypeName()
                     )
-                ).copy(nullable = true)
+                )
             )
-                .initializer("null")
+                .initializer("listOf { e, a -> e == a }")
                 .addModifiers(KModifier.OVERRIDE)
                 .mutable(true)
                 .build()
@@ -194,21 +197,16 @@ class MockingbirdSymbolProcessor(
                         functionName,
                     )
                     endControlFlow()
-                    beginControlFlow("val allParamVerifier = nextInvocationParamVerifier?.firstOrNull()?.takeIf { _ ->")
-                    addStatement("nextInvocationParamVerifier?.size != it.second.size")
-                    endControlFlow()
-                    beginControlFlow("nextInvocationParamVerifier?.let { verifier ->")
-                    beginControlFlow("it.second.forEachIndexed { index, any ->")
-                    beginControlFlow("check((allParamVerifier ?: verifier[index]).invoke(any))")
-                    addStatement("\"Expected a different parameter, found invocation with value: \$any\"")
-                    endControlFlow()
-                    endControlFlow()
-                    addStatement("nextInvocationParamVerifier = null")
-                    addStatement("return")
+                    beginControlFlow("val allParamVerifier = nextInvocationParamVerifier.firstOrNull()?.takeIf { _ ->")
+                    addStatement("nextInvocationParamVerifier.size != it.second.size")
                     endControlFlow()
                     function.parameters.forEachIndexed { index, value ->
                         val name = value.name!!.asString()
-                        beginControlFlow("check(%1L == it.second[%2L])", name, index)
+                        beginControlFlow(
+                            "check((allParamVerifier ?: nextInvocationParamVerifier[%1L]).invoke(%2L, it.second[%1L]))",
+                            index,
+                            name
+                        )
                         addStatement(
                             "\"Expected argument \$%1L, found \${it.second[%2L]} instead.\"".noWrap(),
                             name,
@@ -216,6 +214,7 @@ class MockingbirdSymbolProcessor(
                         )
                         endControlFlow()
                     }
+                    addStatement("nextInvocationParamVerifier = listOf { e, a -> e == a }")
                 }
                 .endControlFlow()
                 .nextControlFlow("else")

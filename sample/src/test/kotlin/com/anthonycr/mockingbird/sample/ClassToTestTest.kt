@@ -174,7 +174,7 @@ class ClassToTestTest {
         verify(interfaceToVerify1) {
             interfaceToVerify1.verifyParams(
                 func = InterfaceToVerify1::performAction3,
-                p0 = eq(Exception("test")) { it.message == "test" }
+                p0 = eq(Exception("test")) { e, a -> e.message == a.message }
             )
         }
     }
@@ -188,7 +188,7 @@ class ClassToTestTest {
         verify(interfaceToVerify1) {
             interfaceToVerify1.verifyParams(
                 func = InterfaceToVerify1::performAction3,
-                p0 = eq(Exception("test")) { it.message == "test1" }
+                p0 = eq(Exception("test1")) { e, a -> e.message == a.message }
             )
         }
     }

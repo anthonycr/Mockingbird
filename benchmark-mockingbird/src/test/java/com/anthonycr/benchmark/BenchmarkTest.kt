@@ -80,7 +80,7 @@ class BenchmarkTest {
             interface6.doThing("test1", true, 1, 1)
             interface7.verifyParams(
                 func = Interface7::doThing,
-                p0 = eq(Exception("test1")) { it.message == "test1" }
+                p0 = eq(Exception("test1")) { e, a -> e.message == a.message }
             )
             interface8.doThing(Model1("test1", 1, true))
             interface9.doThing(

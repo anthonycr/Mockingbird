@@ -4,7 +4,7 @@ interface Verifiable {
 
     val invocations: MutableList<Pair<String, List<Any?>>>
 
-    var nextInvocationParamVerifier: (List<(Any?) -> Boolean>)?
+    var nextInvocationParamVerifier: List<(Any?, Any?) -> Boolean>
 
     var verifying: Boolean
 
