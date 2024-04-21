@@ -118,7 +118,8 @@ class MockingbirdSymbolProcessor(
                 ClassName("kotlin.collections", "MutableList").parameterizedBy(
                     Pair::class.asTypeName().parameterizedBy(
                         String::class.asTypeName(),
-                        List::class.asClassName().parameterizedBy(Any::class.asTypeName())
+                        List::class.asClassName()
+                            .parameterizedBy(Any::class.asTypeName().copy(nullable = true))
                     )
                 )
             )
@@ -130,14 +131,14 @@ class MockingbirdSymbolProcessor(
         implementationTypeSpec.addProperty(
             PropertySpec.builder(
                 "nextInvocationParamVerifier",
-                LambdaTypeName.get(
-                    parameters = arrayOf(
-                        ClassName(
-                            "kotlin.collections",
-                            "List"
-                        ).parameterizedBy(Any::class.asTypeName())
-                    ),
-                    returnType = Boolean::class.asTypeName()
+                ClassName(
+                    "kotlin.collections",
+                    "List"
+                ).parameterizedBy(
+                    LambdaTypeName.get(
+                        parameters = arrayOf(Any::class.asTypeName().copy(nullable = true)),
+                        returnType = Boolean::class.asTypeName()
+                    )
                 ).copy(nullable = true)
             )
                 .initializer("null")
@@ -193,9 +194,14 @@ class MockingbirdSymbolProcessor(
                         functionName,
                     )
                     endControlFlow()
+                    beginControlFlow("val allParamVerifier = nextInvocationParamVerifier?.firstOrNull()?.takeIf { _ ->")
+                    addStatement("nextInvocationParamVerifier?.size != it.second.size")
+                    endControlFlow()
                     beginControlFlow("nextInvocationParamVerifier?.let { verifier ->")
-                    beginControlFlow("check(verifier(it.second))")
-                    addStatement("\"Unknown parameter was expected and was not found\"")
+                    beginControlFlow("it.second.forEachIndexed { index, any ->")
+                    beginControlFlow("check((allParamVerifier ?: verifier[index]).invoke(any))")
+                    addStatement("\"Expected a different parameter, found invocation with value: \$any\"")
+                    endControlFlow()
                     endControlFlow()
                     addStatement("nextInvocationParamVerifier = null")
                     addStatement("return")
