@@ -116,11 +116,7 @@ class MockingbirdSymbolProcessor(
             PropertySpec.builder(
                 "_mockingbird_invocations",
                 ClassName("kotlin.collections", "MutableList").parameterizedBy(
-                    Pair::class.asTypeName().parameterizedBy(
-                        String::class.asTypeName(),
-                        List::class.asClassName()
-                            .parameterizedBy(Any::class.asTypeName().copy(nullable = true))
-                    )
+                    Verifiable.Invocation::class.asTypeName()
                 )
             )
                 .initializer("mutableListOf()")
@@ -191,24 +187,24 @@ class MockingbirdSymbolProcessor(
                 .endControlFlow()
                 .beginControlFlow("expectedInvocations.forEach")
                 .apply {
-                    beginControlFlow("check(it.first == %S)", functionName)
+                    beginControlFlow("check(it.functionName == %S)", functionName)
                     addStatement(
-                        "\"Expected function call %1L, \${it.first} was called instead\"".noWrap(),
+                        "\"Expected function call %1L, \${it.functionName} was called instead\"".noWrap(),
                         functionName,
                     )
                     endControlFlow()
                     beginControlFlow("val allParamVerifier = _mockingbird_paramMatcher.firstOrNull()?.takeIf { _ ->")
-                    addStatement("_mockingbird_paramMatcher.size != it.second.size")
+                    addStatement("_mockingbird_paramMatcher.size != it.parameters.size")
                     endControlFlow()
                     function.parameters.forEachIndexed { index, value ->
                         val name = value.name!!.asString()
                         beginControlFlow(
-                            "check((allParamVerifier ?: _mockingbird_paramMatcher[%1L]).invoke(%2L, it.second[%1L]))",
+                            "check((allParamVerifier ?: _mockingbird_paramMatcher[%1L]).invoke(%2L, it.parameters[%1L]))",
                             index,
                             name
                         )
                         addStatement(
-                            "\"Expected argument \$%1L, found \${it.second[%2L]} instead.\"".noWrap(),
+                            "\"Expected argument \$%1L, found \${it.parameters[%2L]} instead.\"".noWrap(),
                             name,
                             index
                         )
@@ -219,7 +215,8 @@ class MockingbirdSymbolProcessor(
                 .endControlFlow()
                 .nextControlFlow("else")
                 .addStatement(
-                    "_mockingbird_invocations.add(Pair(%1S, listOf(%2L)))",
+                    "_mockingbird_invocations.add(%1T(%2S, listOf(%3L)))",
+                    Verifiable.Invocation::class.asClassName(),
                     functionName,
                     function.parameters.joinToString { it.name!!.asString() })
                 .endControlFlow()

@@ -4,7 +4,12 @@ package com.anthonycr.mockingbird.core
 
 interface Verifiable {
 
-    val _mockingbird_invocations: MutableList<Pair<String, List<Any?>>>
+    data class Invocation(
+        val functionName: String,
+        val parameters: List<Any?>
+    )
+
+    val _mockingbird_invocations: MutableList<Invocation>
 
     var _mockingbird_paramMatcher: List<(Any?, Any?) -> Boolean>
 
@@ -35,7 +40,7 @@ fun Any.verifyNoInvocations() {
     check(!this._mockingbird_verifying) { "Do not call verifyNoInvocations from within a verify block" }
 
     this._mockingbird_verifying = true
-    check(this._mockingbird_invocations.isEmpty()) { "Expected no invocations, but found ${this._mockingbird_invocations.size}" }
+    check(this._mockingbird_invocations.isEmpty()) { "Expected no invocations, but found ${this._mockingbird_invocations.size} unverified" }
     this._mockingbird_verifying = false
 }
 
