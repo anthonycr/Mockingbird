@@ -26,8 +26,8 @@ Mockingbird is available on Maven Central. Include the following dependencies in
 `build.gradle.kts` file.
 
 ```kotlin
-testImplementation(project("com.anthonycr.mockingbird:core:<latest_version>")
-kspTest(project("com.anthonycr.mockingbird:processor:<latest_version>"))
+testImplementation("com.anthonycr.mockingbird:core:<latest_version>")
+kspTest("com.anthonycr.mockingbird:processor:<latest_version>")
 ```
 
 Make sure you have the KSP Gradle plugin enabled as well.
