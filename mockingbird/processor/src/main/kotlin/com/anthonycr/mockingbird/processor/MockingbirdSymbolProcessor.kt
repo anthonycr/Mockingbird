@@ -116,11 +116,7 @@ class MockingbirdSymbolProcessor(
             PropertySpec.builder(
                 "_mockingbird_invocations",
                 ClassName("kotlin.collections", "MutableList").parameterizedBy(
-                    Pair::class.asTypeName().parameterizedBy(
-                        String::class.asTypeName(),
-                        List::class.asClassName()
-                            .parameterizedBy(Any::class.asTypeName().copy(nullable = true))
-                    )
+                    Verifiable.Invocation::class.asTypeName()
                 )
             )
                 .initializer("mutableListOf()")
@@ -182,33 +178,34 @@ class MockingbirdSymbolProcessor(
             val functionName = function.qualifiedName!!.asString()
 
             funSpec.beginControlFlow("if (_mockingbird_verifying)")
-                .addStatement("val expectedInvocations = _mockingbird_invocations.take(_mockingbird_expected)")
-                .addStatement("_mockingbird_invocations.removeAll(expectedInvocations)")
-                .beginControlFlow("check(expectedInvocations.size == _mockingbird_expected)")
+                .addStatement("val invocations = _mockingbird_invocations.take(_mockingbird_expected)")
+                .addStatement("_mockingbird_invocations.removeAll(invocations)")
+                .beginControlFlow("check(invocations.size == _mockingbird_expected)")
                 .addStatement(
-                    "\"Expected \$_mockingbird_expected invocations, but got \${expectedInvocations.size} instead.\"".noWrap(),
+                    "\"Expected \$_mockingbird_expected invocations, but got \${invocations.size} instead\"".noWrap(),
                 )
                 .endControlFlow()
-                .beginControlFlow("expectedInvocations.forEach")
+                .beginControlFlow("invocations.forEach")
+                .beginControlFlow("check(it.functionName == %S)", functionName)
+                .addStatement(
+                    "\"Expected function call %1L, \${it.functionName} was called instead\"".noWrap(),
+                    functionName,
+                )
+                .endControlFlow()
                 .apply {
-                    beginControlFlow("check(it.first == %S)", functionName)
-                    addStatement(
-                        "\"Expected function call %1L, \${it.first} was called instead\"".noWrap(),
-                        functionName,
-                    )
-                    endControlFlow()
+                    if (function.parameters.isEmpty()) return@apply
                     beginControlFlow("val allParamVerifier = _mockingbird_paramMatcher.firstOrNull()?.takeIf { _ ->")
-                    addStatement("_mockingbird_paramMatcher.size != it.second.size")
+                    addStatement("_mockingbird_paramMatcher.size != it.parameters.size")
                     endControlFlow()
                     function.parameters.forEachIndexed { index, value ->
                         val name = value.name!!.asString()
                         beginControlFlow(
-                            "check((allParamVerifier ?: _mockingbird_paramMatcher[%1L]).invoke(%2L, it.second[%1L]))",
+                            "check((allParamVerifier ?: _mockingbird_paramMatcher[%1L]).invoke(%2L, it.parameters[%1L]))",
                             index,
                             name
                         )
                         addStatement(
-                            "\"Expected argument \$%1L, found \${it.second[%2L]} instead.\"".noWrap(),
+                            "\"Expected argument \$%1L, found \${it.parameters[%2L]} instead.\"".noWrap(),
                             name,
                             index
                         )
@@ -219,7 +216,8 @@ class MockingbirdSymbolProcessor(
                 .endControlFlow()
                 .nextControlFlow("else")
                 .addStatement(
-                    "_mockingbird_invocations.add(Pair(%1S, listOf(%2L)))",
+                    "_mockingbird_invocations.add(%1T(%2S, listOf(%3L)))",
+                    Verifiable.Invocation::class.asClassName(),
                     functionName,
                     function.parameters.joinToString { it.name!!.asString() })
                 .endControlFlow()
