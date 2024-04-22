@@ -178,21 +178,22 @@ class MockingbirdSymbolProcessor(
             val functionName = function.qualifiedName!!.asString()
 
             funSpec.beginControlFlow("if (_mockingbird_verifying)")
-                .addStatement("val expectedInvocations = _mockingbird_invocations.take(_mockingbird_expected)")
-                .addStatement("_mockingbird_invocations.removeAll(expectedInvocations)")
-                .beginControlFlow("check(expectedInvocations.size == _mockingbird_expected)")
+                .addStatement("val invocations = _mockingbird_invocations.take(_mockingbird_expected)")
+                .addStatement("_mockingbird_invocations.removeAll(invocations)")
+                .beginControlFlow("check(invocations.size == _mockingbird_expected)")
                 .addStatement(
-                    "\"Expected \$_mockingbird_expected invocations, but got \${expectedInvocations.size} instead.\"".noWrap(),
+                    "\"Expected \$_mockingbird_expected invocations, but got \${invocations.size} instead\"".noWrap(),
                 )
                 .endControlFlow()
-                .beginControlFlow("expectedInvocations.forEach")
+                .beginControlFlow("invocations.forEach")
+                .beginControlFlow("check(it.functionName == %S)", functionName)
+                .addStatement(
+                    "\"Expected function call %1L, \${it.functionName} was called instead\"".noWrap(),
+                    functionName,
+                )
+                .endControlFlow()
                 .apply {
-                    beginControlFlow("check(it.functionName == %S)", functionName)
-                    addStatement(
-                        "\"Expected function call %1L, \${it.functionName} was called instead\"".noWrap(),
-                        functionName,
-                    )
-                    endControlFlow()
+                    if (function.parameters.isEmpty()) return@apply
                     beginControlFlow("val allParamVerifier = _mockingbird_paramMatcher.firstOrNull()?.takeIf { _ ->")
                     addStatement("_mockingbird_paramMatcher.size != it.parameters.size")
                     endControlFlow()
