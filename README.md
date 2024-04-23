@@ -22,6 +22,9 @@ effects that are most often verified by a mocking framework.
 
 ## Usage
 
+![Maven Central Version](https://img.shields.io/maven-central/v/com.anthonycr.mockingbird/core)
+
+
 Mockingbird is available on Maven Central. Include the following dependencies in your
 `build.gradle.kts` file.
 
