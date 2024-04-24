@@ -7,4 +7,8 @@ interface InterfaceToVerify2 {
     fun performAction2()
 
     fun cantPerformAction3(): Boolean
+
+    suspend fun performAction4(string: String)
+
+    suspend fun performAction5(): Boolean
 }
