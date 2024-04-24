@@ -1,5 +1,7 @@
 package com.anthonycr.mockingbird.processor
 
+import com.anthonycr.mockingbird.core.Verifiable
+import com.anthonycr.mockingbird.core.Verify
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -10,19 +12,15 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSNode
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
-import com.anthonycr.mockingbird.core.Verifiable
-import com.anthonycr.mockingbird.core.Verify
+import com.google.devtools.ksp.symbol.Modifier
 import com.squareup.kotlinpoet.ClassName
-import com.squareup.kotlinpoet.ExperimentalKotlinPoetApi
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.MemberName
-import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
-import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.TypeVariableName
 import com.squareup.kotlinpoet.asClassName
@@ -172,6 +170,11 @@ class MockingbirdSymbolProcessor(
             val returnType = function.returnType?.toTypeName() ?: unitTypeName
             val funSpec = FunSpec.builder(function.simpleName.asString())
                 .addModifiers(KModifier.OVERRIDE)
+                .apply {
+                    if (function.modifiers.contains(Modifier.SUSPEND)) {
+                        addModifiers(KModifier.SUSPEND)
+                    }
+                }
                 .returns(returnType)
 
             for (param in function.parameters) {

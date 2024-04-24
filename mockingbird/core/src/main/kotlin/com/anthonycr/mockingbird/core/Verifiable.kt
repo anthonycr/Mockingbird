@@ -18,7 +18,7 @@ interface Verifiable {
     var _mockingbird_expected: Int
 }
 
-fun verify(vararg any: Any, block: () -> Unit) {
+inline fun verify(vararg any: Any, block: () -> Unit) {
     val verifiable: List<Verifiable> = any.map {
         check(it is Verifiable) { MUST_BE_VERIFIABLE }
         it

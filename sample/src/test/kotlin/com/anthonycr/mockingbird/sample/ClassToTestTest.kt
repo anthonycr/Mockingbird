@@ -10,6 +10,7 @@ import com.anthonycr.mockingbird.core.verify
 import com.anthonycr.mockingbird.core.verifyIgnoreParams
 import com.anthonycr.mockingbird.core.verifyNoInvocations
 import com.anthonycr.mockingbird.core.verifyParams
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class ClassToTestTest {
@@ -216,5 +217,23 @@ class ClassToTestTest {
         val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
 
         classToTest.act7()
+    }
+
+    @Test
+    fun `verification of suspending function works as expected`() = runTest {
+        val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
+
+        classToTest.act8()
+
+        verify(interfaceToVerify2) {
+            interfaceToVerify2.performAction4("one")
+        }
+    }
+
+    @Test(expected = IllegalStateException::class)
+    fun `verification of non Unit returns suspending function is not allowed`() = runTest {
+        val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
+
+        classToTest.act9()
     }
 }

@@ -41,4 +41,12 @@ class ClassToTest(
         interfaceToVerify2.cantPerformAction3()
     }
 
+    suspend fun act8() {
+        interfaceToVerify2.performAction4("one")
+    }
+
+    suspend fun act9() {
+        interfaceToVerify2.performAction5()
+    }
+
 }
