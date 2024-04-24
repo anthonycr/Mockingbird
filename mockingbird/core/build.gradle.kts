@@ -5,6 +5,10 @@ plugins {
     alias(libs.plugins.mavenPublish)
 }
 
+kotlin {
+    jvmToolchain(libs.versions.jvm.get().toInt())
+}
+
 mavenPublishing {
     signAllPublications()
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)

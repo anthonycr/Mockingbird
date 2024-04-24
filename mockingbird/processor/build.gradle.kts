@@ -5,6 +5,10 @@ plugins {
     alias(libs.plugins.mavenPublish)
 }
 
+kotlin {
+    jvmToolchain(libs.versions.jvm.get().toInt())
+}
+
 dependencies {
     implementation(project(":mockingbird:core"))
     implementation(libs.ksp.api)
