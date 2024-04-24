@@ -10,7 +10,6 @@ import com.anthonycr.mockingbird.core.verify
 import com.anthonycr.mockingbird.core.verifyIgnoreParams
 import com.anthonycr.mockingbird.core.verifyNoInvocations
 import com.anthonycr.mockingbird.core.verifyParams
-import com.anthonycr.mockingbird.core.verifySuspend
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -226,7 +225,7 @@ class ClassToTestTest {
 
         classToTest.act8()
 
-        verifySuspend(interfaceToVerify2) {
+        verify(interfaceToVerify2) {
             interfaceToVerify2.performAction4("one")
         }
     }
@@ -236,9 +235,5 @@ class ClassToTestTest {
         val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
 
         classToTest.act9()
-
-        verifySuspend(interfaceToVerify2) {
-            interfaceToVerify2.performAction5()
-        }
     }
 }

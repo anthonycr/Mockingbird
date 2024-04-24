@@ -18,24 +18,7 @@ interface Verifiable {
     var _mockingbird_expected: Int
 }
 
-suspend fun verifySuspend(vararg any: Any, block: suspend () -> Unit) {
-    val verifiable: List<Verifiable> = any.map {
-        check(it is Verifiable) { MUST_BE_VERIFIABLE }
-        it
-    }
-
-    verifiable.forEach {
-        check(!it._mockingbird_verifying) { "Do not call verify within another verify block" }
-        it._mockingbird_verifying = true
-        it._mockingbird_expected = 1
-    }
-    block()
-    verifiable.forEach {
-        it._mockingbird_verifying = false
-    }
-}
-
-fun verify(vararg any: Any, block: () -> Unit) {
+inline fun verify(vararg any: Any, block: () -> Unit) {
     val verifiable: List<Verifiable> = any.map {
         check(it is Verifiable) { MUST_BE_VERIFIABLE }
         it
