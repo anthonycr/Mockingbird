@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.0.6 *(24 April 2024)*
+- Target JVM 11 specifically for the core library to allow for better compatibility.
+
 ## 0.0.5 *(24 April 2024)*
 - Target JVM 17 toolchain to support inlined bytecode for most consumers.
 
