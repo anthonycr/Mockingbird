@@ -210,4 +210,11 @@ class ClassToTestTest {
             )
         }
     }
+
+    @Test(expected = IllegalStateException::class)
+    fun `verification of non Unit returns is not allowed`() {
+        val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
+
+        classToTest.act7()
+    }
 }

@@ -18,6 +18,7 @@ import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.LambdaTypeName
+import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
@@ -166,13 +167,24 @@ class MockingbirdSymbolProcessor(
                 .mutable(true).build()
         )
 
+        val unitTypeName = Unit::class.asTypeName()
         for (function in interfaceDeclaration.declarations.filterIsInstance<KSFunctionDeclaration>()) {
+            val returnType = function.returnType?.toTypeName() ?: unitTypeName
             val funSpec = FunSpec.builder(function.simpleName.asString())
                 .addModifiers(KModifier.OVERRIDE)
-                .returns(Unit::class)
+                .returns(returnType)
 
             for (param in function.parameters) {
                 funSpec.addParameter(param.name!!.asString(), param.type.toTypeName())
+            }
+
+            if (returnType != unitTypeName) {
+                funSpec.addStatement(
+                    "%M(\"Only functions with return type Unit can be verified\")",
+                    MemberName("kotlin", "error")
+                )
+                implementationTypeSpec.addFunction(funSpec.build())
+                continue
             }
 
             val functionName = function.qualifiedName!!.asString()
