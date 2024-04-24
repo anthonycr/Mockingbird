@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.0.5 *(24 April 2024)*
+- Target JVM 17 toolchain to support inlined bytecode for most consumers.
+
 ## 0.0.4 *(24 April 2024)*
 - Generate stubbed implementations of non-`Unit` returning functions that just throw exceptions.
 - Support generating and verifying `suspend` functions that return `Unit`.
