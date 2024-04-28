@@ -230,6 +230,20 @@ class ClassToTestTest {
         }
     }
 
+    @Test
+    fun `verification of suspending functions parameters works as expected`() = runTest {
+        val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
+
+        classToTest.act8()
+
+        verify(interfaceToVerify2) {
+            interfaceToVerify2.verifyParams(
+                func = InterfaceToVerify2::performAction4,
+                p0 = eq("one")
+            )
+        }
+    }
+
     @Test(expected = IllegalStateException::class)
     fun `verification of non Unit returns suspending function is not allowed`() = runTest {
         val classToTest = ClassToTest(interfaceToVerify1, interfaceToVerify2)
