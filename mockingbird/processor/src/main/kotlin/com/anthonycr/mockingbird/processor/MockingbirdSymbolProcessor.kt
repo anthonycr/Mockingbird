@@ -156,16 +156,6 @@ class MockingbirdSymbolProcessor(
                 .mutable(true).build()
         )
 
-        implementationTypeSpec.addProperty(
-            PropertySpec.builder(
-                "_mockingbird_expected",
-                Int::class.asClassName()
-            )
-                .initializer("1")
-                .addModifiers(KModifier.OVERRIDE)
-                .mutable(true).build()
-        )
-
         val unitTypeName = Unit::class.asTypeName()
         for (function in interfaceDeclaration.declarations.filterIsInstance<KSFunctionDeclaration>()) {
             val returnType = function.returnType?.toTypeName() ?: unitTypeName
@@ -194,34 +184,33 @@ class MockingbirdSymbolProcessor(
             val functionName = function.qualifiedName!!.asString()
 
             funSpec.beginControlFlow("if (_mockingbird_verifying)")
-                .addStatement("val invocations = _mockingbird_invocations.take(_mockingbird_expected)")
-                .addStatement("_mockingbird_invocations.removeAll(invocations)")
-                .beginControlFlow("check(invocations.size == _mockingbird_expected)")
+                .addStatement("val invocation = _mockingbird_invocations.firstOrNull()")
+                .beginControlFlow("check(invocation != null)")
                 .addStatement(
-                    "\"Expected \$_mockingbird_expected invocations, but got \${invocations.size} instead\"".noWrap(),
+                    "\"Expected an invocation, but got none instead\"".noWrap(),
                 )
                 .endControlFlow()
-                .beginControlFlow("invocations.forEach")
-                .beginControlFlow("check(it.functionName == %S)", functionName)
+                .addStatement("_mockingbird_invocations.removeAt(0)")
+                .beginControlFlow("check(invocation.functionName == %S)", functionName)
                 .addStatement(
-                    "\"Expected function call %1L, \${it.functionName} was called instead\"".noWrap(),
+                    "\"Expected function call %1L, \${invocation.functionName} was called instead\"".noWrap(),
                     functionName,
                 )
                 .endControlFlow()
                 .apply {
                     if (function.parameters.isEmpty()) return@apply
                     beginControlFlow("val allParamVerifier = _mockingbird_paramMatcher.firstOrNull()?.takeIf { _ ->")
-                    addStatement("_mockingbird_paramMatcher.size != it.parameters.size")
+                    addStatement("_mockingbird_paramMatcher.size != invocation.parameters.size")
                     endControlFlow()
                     function.parameters.forEachIndexed { index, value ->
                         val name = value.name!!.asString()
                         beginControlFlow(
-                            "check((allParamVerifier ?: _mockingbird_paramMatcher[%1L]).invoke(%2L, it.parameters[%1L]))",
+                            "check((allParamVerifier ?: _mockingbird_paramMatcher[%1L]).invoke(%2L, invocation.parameters[%1L]))",
                             index,
                             name
                         )
                         addStatement(
-                            "\"Expected argument \$%1L, found \${it.parameters[%2L]} instead.\"".noWrap(),
+                            "\"Expected argument \$%1L, found \${invocation.parameters[%2L]} instead.\"".noWrap(),
                             name,
                             index
                         )
@@ -229,7 +218,6 @@ class MockingbirdSymbolProcessor(
                     }
                     addStatement("_mockingbird_paramMatcher = listOf { e, a -> e == a }")
                 }
-                .endControlFlow()
                 .nextControlFlow("else")
                 .addStatement(
                     "_mockingbird_invocations.add(%1T(%2S, listOf(%3L)))",

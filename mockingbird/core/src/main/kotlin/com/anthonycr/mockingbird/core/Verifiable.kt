@@ -14,39 +14,54 @@ interface Verifiable {
     var _mockingbird_paramMatcher: List<(Any?, Any?) -> Boolean>
 
     var _mockingbird_verifying: Boolean
-
-    var _mockingbird_expected: Int
 }
 
-inline fun verify(vararg any: Any, block: () -> Unit) {
-    val verifiable: List<Verifiable> = any.map {
+/**
+ * Verifies the [verifiable] and invokes the [block], in which to call functions on the [verifiable]
+ * that are expected to be called. All expected invocations must be verified within the [block].
+ *
+ * This function cannot be called within another [verify] block.
+ */
+inline fun verify(vararg verifiable: Any, block: () -> Unit) {
+    val verifiableList: List<Verifiable> = verifiable.map {
         check(it is Verifiable) { MUST_BE_VERIFIABLE }
         it
     }
 
-    verifiable.forEach {
+    verifiableList.forEach {
         check(!it._mockingbird_verifying) { "Do not call verify within another verify block" }
         it._mockingbird_verifying = true
-        it._mockingbird_expected = 1
     }
     block()
-    verifiable.forEach {
+    verifiableList.forEach {
+        check(it._mockingbird_invocations.isEmpty()) { "Found ${it._mockingbird_invocations.size} unverified invocations" }
         it._mockingbird_verifying = false
     }
 }
 
-fun Any.verifyNoInvocations() {
+/**
+ * Verifies that all expected function invocations have been verified. Useful if there are no
+ * invocations expected for a certain verifiable.
+ *
+ * Instead of calling [verify] and not doing anything in the block
+ * ```
+ * verify(myInterface) {
+ *
+ * }
+ * ```
+ * Just use [verifyComplete]
+ * ```
+ * myInterface.verifyComplete()
+ * ```
+ *
+ * This function cannot be called from within a [verify] block, which does its own version of
+ * completion verification.
+ */
+fun Any.verifyComplete() {
     check(this is Verifiable) { MUST_BE_VERIFIABLE }
     check(!this._mockingbird_verifying) { "Do not call verifyNoInvocations from within a verify block" }
 
     this._mockingbird_verifying = true
     check(this._mockingbird_invocations.isEmpty()) { "Expected no invocations, but found ${this._mockingbird_invocations.size} unverified" }
     this._mockingbird_verifying = false
-}
-
-fun Any.times(times: Int, block: () -> Unit) {
-    check(this is Verifiable) { MUST_BE_VERIFIABLE }
-
-    this._mockingbird_expected = times
-    block()
 }

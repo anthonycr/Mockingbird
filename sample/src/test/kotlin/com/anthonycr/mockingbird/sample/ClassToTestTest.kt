@@ -3,12 +3,11 @@ package com.anthonycr.mockingbird.sample
 import com.anthonycr.mockingbird.core.Verify
 import com.anthonycr.mockingbird.core.any
 import com.anthonycr.mockingbird.core.eq
-import com.anthonycr.mockingbird.core.sameAs
 import com.anthonycr.mockingbird.core.fake
-import com.anthonycr.mockingbird.core.times
+import com.anthonycr.mockingbird.core.sameAs
 import com.anthonycr.mockingbird.core.verify
+import com.anthonycr.mockingbird.core.verifyComplete
 import com.anthonycr.mockingbird.core.verifyIgnoreParams
-import com.anthonycr.mockingbird.core.verifyNoInvocations
 import com.anthonycr.mockingbird.core.verifyParams
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -33,8 +32,8 @@ class ClassToTestTest {
             interfaceToVerify2.performAction1(1, "two", "three")
         }
 
-        interfaceToVerify1.verifyNoInvocations()
-        interfaceToVerify2.verifyNoInvocations()
+        interfaceToVerify1.verifyComplete()
+        interfaceToVerify2.verifyComplete()
     }
 
     @Test(expected = IllegalStateException::class)
@@ -62,8 +61,8 @@ class ClassToTestTest {
             interfaceToVerify2.performAction1(2, "three", "four")
         }
 
-        interfaceToVerify1.verifyNoInvocations()
-        interfaceToVerify2.verifyNoInvocations()
+        interfaceToVerify1.verifyComplete()
+        interfaceToVerify2.verifyComplete()
     }
 
     @Test(expected = IllegalStateException::class)
@@ -85,8 +84,10 @@ class ClassToTestTest {
         classToTest.act3()
 
         verify(interfaceToVerify1, interfaceToVerify2) {
-            interfaceToVerify1.times(2) { interfaceToVerify1.performAction1(1) }
-            interfaceToVerify2.times(2) { interfaceToVerify2.performAction1(1, "two", "three") }
+            interfaceToVerify1.performAction1(1)
+            interfaceToVerify1.performAction1(1)
+            interfaceToVerify2.performAction1(1, "two", "three")
+            interfaceToVerify2.performAction1(1, "two", "three")
         }
     }
 
@@ -98,7 +99,9 @@ class ClassToTestTest {
 
         verify(interfaceToVerify1, interfaceToVerify2) {
             // Only invoked 2 times
-            interfaceToVerify1.times(3) { interfaceToVerify1.performAction1(1) }
+            interfaceToVerify1.performAction1(1)
+            interfaceToVerify1.performAction1(1)
+            interfaceToVerify1.performAction1(1)
         }
     }
 
@@ -108,8 +111,8 @@ class ClassToTestTest {
 
         classToTest.act4()
 
-        interfaceToVerify1.verifyNoInvocations()
-        interfaceToVerify2.verifyNoInvocations()
+        interfaceToVerify1.verifyComplete()
+        interfaceToVerify2.verifyComplete()
     }
 
     @Test(expected = IllegalStateException::class)
@@ -119,7 +122,7 @@ class ClassToTestTest {
         classToTest.act3()
 
         // act3 function call actually has invocations
-        interfaceToVerify1.verifyNoInvocations()
+        interfaceToVerify1.verifyComplete()
     }
 
     @Test(expected = IllegalStateException::class)
@@ -142,7 +145,7 @@ class ClassToTestTest {
         classToTest.act3()
 
         verify(interfaceToVerify1) {
-            interfaceToVerify1.verifyNoInvocations()
+            interfaceToVerify1.verifyComplete()
         }
     }
 
