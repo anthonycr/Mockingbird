@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.0.0 *(5 May 2024)*
+- First stable release.
+- Removed `times` function since it can be replaced with Kotlin's `repeat` function.
+- Added documentation to all public verification functions.
+
 ## 0.0.6 *(24 April 2024)*
 - Target JVM 11 specifically for the core library to allow for better compatibility.
 
