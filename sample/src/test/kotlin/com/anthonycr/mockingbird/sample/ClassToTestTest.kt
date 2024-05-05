@@ -99,9 +99,9 @@ class ClassToTestTest {
 
         verify(interfaceToVerify1, interfaceToVerify2) {
             // Only invoked 2 times
-            interfaceToVerify1.performAction1(1)
-            interfaceToVerify1.performAction1(1)
-            interfaceToVerify1.performAction1(1)
+            repeat(3) {
+                interfaceToVerify1.performAction1(1)
+            }
         }
     }
 
