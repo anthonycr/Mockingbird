@@ -42,6 +42,7 @@ class MockingbirdSymbolProcessor(
             .map { it.type.resolve().declaration }
             .check("Only interfaces can be verified") { it is KSClassDeclaration && it.classKind == ClassKind.INTERFACE }
             .filterIsInstance<KSClassDeclaration>()
+            .distinctBy { it.qualifiedName!!.asString() }
             .associateBy { it.qualifiedName!!.asString() }
             .map { (name, declaration) ->
                 val fakeTypeSpec = generateFakeImplementation(declaration)
