@@ -34,3 +34,7 @@ local.properties
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+
+# Kotlin build directory introduced in K2, see https://kotlinlang.org/docs/whatsnew-eap.html#new-directory-for-kotlin-data-in-gradle-projects
+.kotlin

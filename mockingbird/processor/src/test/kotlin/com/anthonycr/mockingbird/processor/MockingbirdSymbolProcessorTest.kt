@@ -2,6 +2,7 @@ package com.anthonycr.mockingbird.processor
 
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
+import com.tschuchort.compiletesting.configureKsp
 import com.tschuchort.compiletesting.symbolProcessorProviders
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.Assert
@@ -21,7 +22,10 @@ class MockingbirdSymbolProcessorTest {
         inheritClassPath = true
         verbose = false
         sources = list
-        symbolProcessorProviders = listOf(MockingbirdSymbolProcessorProvider())
+        symbolProcessorProviders += MockingbirdSymbolProcessorProvider()
+        configureKsp(useKsp2 = true) {
+            symbolProcessorProviders += MockingbirdSymbolProcessorProvider()
+        }
     }.compile()
 
     @Test
