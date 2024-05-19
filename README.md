@@ -43,23 +43,31 @@ import com.anthonycr.mockingbird.core.Verify
 import com.anthonycr.mockingbird.core.fake
 import com.anthonycr.mockingbird.core.verify
 
-interface MyInterface {
-  fun doThing(value: String)
+interface Analytics {
+    fun trackEvent(event: String)
 }
 
-class MyTest {
-  @Verify
-  private val myInterface: MyInterface = fake()
-
-  @Test
-  fun myTest {
-    // Perform action on the interface (usually done implicitly rather than explicitly)
-    myInterface.doThing("hello")
-
-    verify(myInterface) {
-      myInterface.doThing("hello")
+class ClassToTest(private val analytics: Analytics) {
+    fun doSomething() {
+        analytics.trackEvent("doSomething was called!")
     }
-  }
+}
+
+class ClassToTestTest {
+
+    @Verify
+    val analytics: Analytics = fake()
+
+    @Test
+    fun `analytics event for doSomething was triggered`() {
+        val classToTest = ClassToTest(analytics)
+
+        classToTest.doSomething()
+
+        verify(analytics) {
+            analytics.trackEvent("doSomething was called!")
+        }
+    }
 }
 ```
 
