@@ -2,7 +2,7 @@
 junit = "4.13.2"
 jetbrainsKotlinJvm = "1.9.24"
 kotlinpoet = "1.17.0"
-ksp = "1.9.24-1.0.20"
+ksp = "2.0.0-1.0.21"
 jvm = "17"
 
 [libraries]
