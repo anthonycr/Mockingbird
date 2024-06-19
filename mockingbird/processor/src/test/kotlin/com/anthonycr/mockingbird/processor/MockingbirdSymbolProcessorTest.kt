@@ -2,7 +2,7 @@ package com.anthonycr.mockingbird.processor
 
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
-import com.tschuchort.compiletesting.symbolProcessorProviders
+import com.tschuchort.compiletesting.configureKsp
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.Assert
 import org.junit.Rule
@@ -21,7 +21,9 @@ class MockingbirdSymbolProcessorTest {
         inheritClassPath = true
         verbose = false
         sources = list
-        symbolProcessorProviders = listOf(MockingbirdSymbolProcessorProvider())
+        configureKsp(useKsp2 = true) {
+            symbolProcessorProviders += MockingbirdSymbolProcessorProvider()
+        }
     }.compile()
 
     @Test
@@ -29,7 +31,7 @@ class MockingbirdSymbolProcessorTest {
         val result = compile(listOf(nonPropertyAnnotatedSource))
 
         Assert.assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, result.exitCode)
-        Assert.assertTrue(result.messages.contains("/Test1.kt:5: Only properties can be annotated with Verify"))
+        Assert.assertTrue(result.messages.contains("/Test1.kt:7: Only properties can be annotated with Verify"))
     }
 
     @Test
@@ -37,7 +39,7 @@ class MockingbirdSymbolProcessorTest {
         val result = compile(listOf(nonInterfaceAnnotatedSource))
 
         Assert.assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, result.exitCode)
-        Assert.assertTrue(result.messages.contains("/Test2.kt:3: Only interfaces can be verified"))
+        Assert.assertTrue(result.messages.contains("/Test2.kt:5: Only interfaces can be verified"))
     }
 
     @Test
