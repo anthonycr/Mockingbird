@@ -17,4 +17,4 @@ coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-
 [plugins]
 ksp-plugin = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
-mavenPublish = { id = "com.vanniktech.maven.publish", version = "0.28.0" }
+mavenPublish = { id = "com.vanniktech.maven.publish", version = "0.29.0" }
