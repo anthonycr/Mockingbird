@@ -11,7 +11,7 @@ ksp-api = { group = "com.google.devtools.ksp", name = "symbol-processing-api", v
 kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }
 kotlinpoet-ksp = { group = "com.squareup", name = "kotlinpoet-ksp", version.ref = "kotlinpoet" }
 compiletesting = { group = "dev.zacsweers.kctfork", name = "ksp", version = "0.5.1" }
-mockk = { group = "io.mockk", name = "mockk", version = "1.13.11" }
+mockk = { group = "io.mockk", name = "mockk", version = "1.13.12" }
 coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version = "1.8.1" }
 
 [plugins]
