@@ -1,7 +1,7 @@
 [versions]
 junit = "4.13.2"
 jetbrainsKotlinJvm = "2.0.0"
-kotlinpoet = "1.17.0"
+kotlinpoet = "1.18.1"
 ksp = "2.0.0-1.0.22"
 jvm = "17"
 
@@ -10,11 +10,11 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 ksp-api = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
 kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }
 kotlinpoet-ksp = { group = "com.squareup", name = "kotlinpoet-ksp", version.ref = "kotlinpoet" }
-compiletesting = { group = "dev.zacsweers.kctfork", name = "ksp", version = "0.5.0" }
+compiletesting = { group = "dev.zacsweers.kctfork", name = "ksp", version = "0.5.1" }
 mockk = { group = "io.mockk", name = "mockk", version = "1.13.11" }
 coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version = "1.8.1" }
 
 [plugins]
 ksp-plugin = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
-mavenPublish = { id = "com.vanniktech.maven.publish", version = "0.28.0" }
+mavenPublish = { id = "com.vanniktech.maven.publish", version = "0.29.0" }
