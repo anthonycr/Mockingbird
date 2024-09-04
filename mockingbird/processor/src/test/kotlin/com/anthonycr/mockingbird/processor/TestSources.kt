@@ -48,3 +48,20 @@ val validInterfaceAnnotatedSource = SourceFile.kotlin("Test3.kt", """
         lateinit var anInterface: AnInterface
     }
 """.trimIndent())
+
+val validInterfaceAnnotatedImmutableProperty = SourceFile.kotlin("Test3.kt", """
+    package com.anthonycr.test
+
+    import com.anthonycr.mockingbird.core.fake
+    import com.anthonycr.mockingbird.core.Verify
+    
+    interface AnInterface {
+        fun aFunction()
+    }
+
+    class Test3 {
+        @Verify
+        private val anInterface: AnInterface = fake()
+    }
+""".trimIndent())
+

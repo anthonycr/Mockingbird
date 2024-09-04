@@ -48,4 +48,11 @@ class MockingbirdSymbolProcessorTest {
 
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
     }
+
+    @Test
+    fun `annotated immutable property of simple interface compiles successfully`() {
+        val result = compile(listOf(validInterfaceAnnotatedImmutableProperty))
+
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+    }
 }
