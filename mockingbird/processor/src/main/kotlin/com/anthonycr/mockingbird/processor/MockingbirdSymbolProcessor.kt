@@ -10,8 +10,13 @@ import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSName
 import com.google.devtools.ksp.symbol.KSNode
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.KSTypeArgument
+import com.google.devtools.ksp.symbol.KSTypeParameter
+import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.Modifier
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
@@ -21,11 +26,13 @@ import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.TypeVariableName
 import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.ksp.toTypeName
+import com.squareup.kotlinpoet.ksp.toTypeParameterResolver
 import com.squareup.kotlinpoet.ksp.writeTo
 
 class MockingbirdSymbolProcessor(
@@ -37,18 +44,21 @@ class MockingbirdSymbolProcessor(
         val annotated = resolver.getSymbolsWithAnnotation(Verify::class.qualifiedName!!)
 
         val fakes = annotated
-            .check("Only properties can be annotated with Verify") { it is KSPropertyDeclaration }
+            .check("Only properties can be annotated with Verify", { it }) {
+                it is KSPropertyDeclaration
+            }
             .filterIsInstance<KSPropertyDeclaration>()
-            .map { it.type.resolve().declaration }
-            .check("Only interfaces can be verified") { it is KSClassDeclaration && it.classKind == ClassKind.INTERFACE }
-            .filterIsInstance<KSClassDeclaration>()
-            .distinctBy { it.qualifiedName!!.asString() }
-            .associateBy { it.qualifiedName!!.asString() }
-            .map { (name, declaration) ->
-                val fakeTypeSpec = generateFakeImplementation(declaration)
+            .map { it.type.resolve() }
+            .distinctBy { it.declaration.qualifiedName!!.asString() }
+            .associateBy { it.declaration.qualifiedName!!.asString() }
+            .map { (name, ksType) ->
+                val declaration =
+                    (ksType.declaration as? KSClassDeclaration)?.takeIf { it.classKind == ClassKind.INTERFACE }
+                        ?: error("Only interfaces can be verified")
+                val fakeTypeSpec = generateFakeImplementation(ksType, declaration)
 
                 FileSpec.builder(
-                    declaration.packageName.asString(),
+                    declaration.normalizedPackageName,
                     fakeTypeSpec.name!!
                 )
                     .addImport("kotlin.collections", "forEach")
@@ -91,7 +101,7 @@ class MockingbirdSymbolProcessor(
                     .apply {
                         fakes.forEach { (declaration, fake) ->
                             val className =
-                                ClassName(declaration.packageName.asString(), fake.name!!)
+                                ClassName(declaration.normalizedPackageName, fake.name!!)
                             addStatement("\"${declaration.qualifiedName!!.asString()}\" -> clazz.cast(${className.canonicalName}())!!")
                         }
                         addStatement("else -> error(\"Unsupported type \$clazz\")")
@@ -102,14 +112,19 @@ class MockingbirdSymbolProcessor(
             .build()
     }
 
-    private fun generateFakeImplementation(interfaceDeclaration: KSClassDeclaration): TypeSpec {
-        val interfaceName = interfaceDeclaration.simpleName.asString()
+    private val KSClassDeclaration.normalizedPackageName: String
+        get() = packageName.takeIf { it.asString() != "kotlin" }?.asString() ?: "_kotlin"
 
+    private fun generateFakeImplementation(
+        ksType: KSType,
+        interfaceDeclaration: KSClassDeclaration
+    ): TypeSpec {
+        val interfaceName = interfaceDeclaration.simpleName.asString()
         val implementationClassName = "${interfaceName}_Fake"
 
         val implementationTypeSpec = TypeSpec.classBuilder(implementationClassName)
             .addModifiers(KModifier.PUBLIC)
-            .addSuperinterface(interfaceDeclaration.asStarProjectedType().toTypeName())
+            .addSuperinterface(ksType.toTypeName())
             .addSuperinterface(Verifiable::class.asTypeName())
 
         implementationTypeSpec.addProperty(
@@ -157,8 +172,16 @@ class MockingbirdSymbolProcessor(
         )
 
         val unitTypeName = Unit::class.asTypeName()
+        fun KSTypeReference.resolveType(): TypeName? {
+            val arguments = ksType.arguments
+            val parameters = interfaceDeclaration.typeParameters.map { it.name.getShortName() }
+            if (arguments.isEmpty()) {
+                return toTypeName()
+            }
+            return arguments.getOrNull(parameters.indexOf(toString()))?.toTypeName()
+        }
         for (function in interfaceDeclaration.declarations.filterIsInstance<KSFunctionDeclaration>()) {
-            val returnType = function.returnType?.toTypeName() ?: unitTypeName
+            val returnType = function.returnType?.resolveType() ?: unitTypeName
             val funSpec = FunSpec.builder(function.simpleName.asString())
                 .addModifiers(KModifier.OVERRIDE)
                 .apply {
@@ -169,7 +192,10 @@ class MockingbirdSymbolProcessor(
                 .returns(returnType)
 
             for (param in function.parameters) {
-                funSpec.addParameter(param.name!!.asString(), param.type.toTypeName())
+                funSpec.addParameter(
+                    param.name!!.asString(),
+                    param.type.resolveType() ?: unitTypeName
+                )
             }
 
             if (returnType != unitTypeName) {
@@ -232,14 +258,15 @@ class MockingbirdSymbolProcessor(
         return implementationTypeSpec.build()
     }
 
-    private fun <T : KSNode> Sequence<T>.check(
+    private fun <T> Sequence<T>.check(
         message: String,
+        node: (T) -> KSNode,
         condition: (T) -> Boolean
     ): Sequence<T> = filter {
         val passed = condition(it)
 
         if (!passed) {
-            logger.error(message, it)
+            logger.error(message, node(it))
         }
 
         passed
