@@ -54,7 +54,10 @@ class MockingbirdSymbolProcessor(
             .map { (name, ksType) ->
                 val declaration =
                     (ksType.declaration as? KSClassDeclaration)?.takeIf { it.classKind == ClassKind.INTERFACE }
-                        ?: error("Only interfaces can be verified")
+                        ?: return run {
+                            logger.error("Only interfaces can be verified", ksType.declaration)
+                            emptyList()
+                        }
                 val fakeTypeSpec = generateFakeImplementation(ksType, declaration)
 
                 FileSpec.builder(
