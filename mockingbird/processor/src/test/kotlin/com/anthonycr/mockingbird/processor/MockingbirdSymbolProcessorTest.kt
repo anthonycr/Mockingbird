@@ -55,4 +55,11 @@ class MockingbirdSymbolProcessorTest {
 
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
     }
+
+    @Test
+    fun `annotated lambda property compiles successfully`() {
+        val result = compile(listOf(validFunctionReferenceAnnotatedSource))
+
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+    }
 }
