@@ -102,7 +102,7 @@ class MockingbirdSymbolProcessor(
                         fakes.forEach { (declaration, fake) ->
                             val className =
                                 ClassName(declaration.normalizedPackageName, fake.name!!)
-                            addStatement("\"${declaration.qualifiedName!!.asString()}\" -> clazz.cast(${className.canonicalName}())!!")
+                            addStatement("\"${declaration.normalizedQualifiedName}\" -> clazz.cast(${className.canonicalName}())!!")
                         }
                         addStatement("else -> error(\"Unsupported type \$clazz\")")
                     }
@@ -111,6 +111,12 @@ class MockingbirdSymbolProcessor(
             )
             .build()
     }
+
+    private val KSClassDeclaration.normalizedQualifiedName: String
+        get() = when (val qualifier = qualifiedName!!.getQualifier()) {
+            "kotlin" -> "kotlin.jvm.functions"
+            else -> qualifier
+        } + ".${qualifiedName!!.getShortName()}"
 
     private val KSClassDeclaration.normalizedPackageName: String
         get() = packageName.takeIf { it.asString() != "kotlin" }?.asString() ?: "_kotlin"
