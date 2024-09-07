@@ -20,6 +20,7 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.asTypeName
+import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 
 /**
@@ -50,9 +51,12 @@ class FakeImplementationGenerator {
         val interfaceName = interfaceDeclaration.simpleName.asString()
         val implementationClassName = "${interfaceName}_Fake"
 
+        val typeParameters = interfaceDeclaration.typeParameters.map {
+            it.bounds.first().toTypeName()
+        }
         val implementationTypeSpec = TypeSpec.classBuilder(implementationClassName)
             .addModifiers(KModifier.PUBLIC)
-            .addSuperinterface(ksType.toTypeName())
+            .addSuperinterface(ksType.toClassName().maybeParameterizedBy(typeParameters))
             .addSuperinterface(Verifiable::class.asTypeName())
 
         implementationTypeSpec.addProperty(
@@ -100,13 +104,14 @@ class FakeImplementationGenerator {
         )
 
         val unitTypeName = Unit::class.asTypeName()
+        val anyTypeName = Any::class.asTypeName()
+        val anyTypeNameNullable = Any::class.asTypeName().copy(nullable = true)
         fun KSTypeReference.resolveType(): TypeName? {
-            val arguments = ksType.arguments
             val parameters = interfaceDeclaration.typeParameters.map { it.name.getShortName() }
-            if (arguments.isEmpty()) {
+            if (typeParameters.isEmpty()) {
                 return toTypeName()
             }
-            return arguments.getOrNull(parameters.indexOf(toString()))?.toTypeName()
+            return typeParameters.getOrNull(parameters.indexOf(toString()))
         }
         for (function in interfaceDeclaration.declarations.filterIsInstance<KSFunctionDeclaration>()) {
             val returnType = function.returnType?.resolveType() ?: unitTypeName
@@ -126,7 +131,7 @@ class FakeImplementationGenerator {
                 )
             }
 
-            if (returnType != unitTypeName) {
+            if (returnType != unitTypeName && returnType != anyTypeName && returnType != anyTypeNameNullable) {
                 funSpec.addStatement(
                     "%M(\"Only functions with return type Unit can be verified\")",
                     MemberName("kotlin", "error")
@@ -179,11 +184,20 @@ class FakeImplementationGenerator {
                     functionName,
                     function.parameters.joinToString { it.name!!.asString() })
                 .endControlFlow()
+                .addStatement("return Unit")
 
             implementationTypeSpec.addFunction(funSpec.build())
         }
 
         return implementationTypeSpec.build()
+    }
+
+    private fun ClassName.maybeParameterizedBy(typeArguments: List<TypeName>): TypeName {
+        return if (typeArguments.isEmpty()) {
+            this
+        } else {
+            parameterizedBy(typeArguments)
+        }
     }
 
 }

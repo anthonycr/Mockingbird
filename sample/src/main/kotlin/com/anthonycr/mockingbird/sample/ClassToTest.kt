@@ -1,13 +1,15 @@
 package com.anthonycr.mockingbird.sample
 
 class ClassToTest(
-    private val lambdaToVerify: (String) -> Unit,
+    private val lambdaToVerify1: (String) -> Unit,
+    private val lambdaToVerify2: (Int) -> Unit,
     private val interfaceToVerify1: InterfaceToVerify1,
     private val interfaceToVerify2: InterfaceToVerify2
 ) {
 
     fun act1() {
-        lambdaToVerify("test")
+        lambdaToVerify1("test")
+        lambdaToVerify2(1)
         interfaceToVerify1.performAction1(1)
         interfaceToVerify1.performAction1(2)
         interfaceToVerify2.performAction1(1, "two", "three")
