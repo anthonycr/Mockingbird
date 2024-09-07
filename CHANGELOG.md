@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 1.1.0 *(7 September 2024)*
+- Fix issue where lambdas could not be faked.
+
 ## 1.0.0 *(5 May 2024)*
 - First stable release.
 - Removed `times` function since it can be replaced with Kotlin's `repeat` function.
