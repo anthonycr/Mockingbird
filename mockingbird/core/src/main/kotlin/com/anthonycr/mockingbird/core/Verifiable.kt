@@ -52,7 +52,7 @@ inline fun verifyPartial(vararg verifiable: Any, block: () -> Unit) {
     }
 
     verifiableList.forEach {
-        check(!it._mockingbird_verifying) { "Do not call verify within another verify block" }
+        check(!it._mockingbird_verifying) { "Do not call verifyPartial within another verify block" }
         it._mockingbird_verifying = true
     }
     block()
