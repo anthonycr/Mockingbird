@@ -20,7 +20,7 @@ interface Verifiable {
  * Verifies the [verifiable] and invokes the [block], in which to call functions on the [verifiable]
  * that are expected to be called. All expected invocations must be verified within the [block].
  *
- * This function cannot be called within another [verify] block.
+ * This function cannot be called within another [verify] or [verifyPartial] block.
  */
 inline fun verify(vararg verifiable: Any, block: () -> Unit) {
     val verifiableList: List<Verifiable> = verifiable.map {
@@ -43,7 +43,7 @@ inline fun verify(vararg verifiable: Any, block: () -> Unit) {
  * Verifies the [verifiable] and invokes the [block], in which to call functions on the [verifiable]
  * that are expected to be called. Unlike [verify] not all invocations need to be verified.
  *
- * This function cannot be called within another [verify] block.
+ * This function cannot be called within another [verify] or [verifyPartial] block.
  */
 inline fun verifyPartial(vararg verifiable: Any, block: () -> Unit) {
     val verifiableList: List<Verifiable> = verifiable.map {
