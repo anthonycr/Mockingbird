@@ -20,7 +20,7 @@ interface Verifiable {
  * Verifies the [verifiable] and invokes the [block], in which to call functions on the [verifiable]
  * that are expected to be called. All expected invocations must be verified within the [block].
  *
- * This function cannot be called within another [verify] block.
+ * This function cannot be called within another [verify] or [verifyPartial] block.
  */
 inline fun verify(vararg verifiable: Any, block: () -> Unit) {
     val verifiableList: List<Verifiable> = verifiable.map {
@@ -35,6 +35,29 @@ inline fun verify(vararg verifiable: Any, block: () -> Unit) {
     block()
     verifiableList.forEach {
         check(it._mockingbird_invocations.isEmpty()) { "Found ${it._mockingbird_invocations.size} unverified invocations" }
+        it._mockingbird_verifying = false
+    }
+}
+
+/**
+ * Verifies the [verifiable] and invokes the [block], in which to call functions on the [verifiable]
+ * that are expected to be called. Unlike [verify] not all invocations need to be verified.
+ *
+ * This function cannot be called within another [verify] or [verifyPartial] block.
+ */
+inline fun verifyPartial(vararg verifiable: Any, block: () -> Unit) {
+    val verifiableList: List<Verifiable> = verifiable.map {
+        check(it is Verifiable) { MUST_BE_VERIFIABLE }
+        it
+    }
+
+    verifiableList.forEach {
+        check(!it._mockingbird_verifying) { "Do not call verifyPartial within another verify block" }
+        it._mockingbird_verifying = true
+    }
+    block()
+    verifiableList.forEach {
+        it._mockingbird_invocations.clear()
         it._mockingbird_verifying = false
     }
 }

@@ -9,6 +9,7 @@ import com.anthonycr.mockingbird.core.verify
 import com.anthonycr.mockingbird.core.verifyComplete
 import com.anthonycr.mockingbird.core.verifyIgnoreParams
 import com.anthonycr.mockingbird.core.verifyParams
+import com.anthonycr.mockingbird.core.verifyPartial
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -145,6 +146,20 @@ class ClassToTestTest {
         classToTest.act3()
 
         verify(interfaceToVerify1, interfaceToVerify2) {
+            interfaceToVerify1.performAction1(1)
+            interfaceToVerify1.performAction1(1)
+            interfaceToVerify2.performAction1(1, "two", "three")
+        }
+    }
+
+    @Test
+    fun `act3 passes with unverified using verifyPartial`() {
+        val classToTest =
+            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+
+        classToTest.act3()
+
+        verifyPartial(interfaceToVerify1, interfaceToVerify2) {
             interfaceToVerify1.performAction1(1)
             interfaceToVerify1.performAction1(1)
             interfaceToVerify2.performAction1(1, "two", "three")
