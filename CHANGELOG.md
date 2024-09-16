@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 1.2.0 *(15 September 2024)*
+- Add support for `verifyPartial` to allow for verifying only some invocations.
+
 ## 1.1.0 *(7 September 2024)*
 - Fix issue where lambdas could not be faked.
 
