@@ -1,6 +1,6 @@
 [versions]
 junit = "4.13.2"
-jetbrainsKotlinJvm = "2.0.20"
+jetbrainsKotlin = "2.0.20"
 kotlinpoet = "1.18.1"
 ksp = "2.0.20-1.0.25"
 jvm = "17"
@@ -16,5 +16,6 @@ coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-
 
 [plugins]
 ksp-plugin = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
+jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlin" }
+jetbrainsKotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "jetbrainsKotlin" }
 mavenPublish = { id = "com.vanniktech.maven.publish", version = "0.29.0" }
