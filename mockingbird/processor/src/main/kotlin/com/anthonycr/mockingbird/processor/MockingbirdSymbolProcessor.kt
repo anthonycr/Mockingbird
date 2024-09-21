@@ -33,6 +33,10 @@ class MockingbirdSymbolProcessor(
                 node = { it },
                 condition = { it is KSPropertyDeclaration }
             )
+            .distinctBy {
+                require(it is KSPropertyDeclaration)
+                it.type.toString()
+            }
             .map { declaration ->
                 require(declaration is KSPropertyDeclaration)
 
