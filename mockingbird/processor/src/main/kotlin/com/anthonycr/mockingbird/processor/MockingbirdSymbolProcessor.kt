@@ -36,20 +36,19 @@ class MockingbirdSymbolProcessor(
             .map { declaration ->
                 require(declaration is KSPropertyDeclaration)
 
-                val ksType = declaration.type.resolve()
-                ksType to ksType.declaration
+                declaration.type.resolve().declaration
             }
             .check(
                 message = "Only interfaces can be verified",
                 logger = logger,
-                node = Pair<KSType, KSDeclaration>::second,
-                condition = { (_, declaration) -> declaration.isInterface }
+                node = { it },
+                condition = { declaration -> declaration.isInterface }
             )
-            .distinctBy { (_, declaration) -> declaration.qualifiedName!!.asString() }
-            .map { (ksType, declaration) ->
+            .distinctBy { declaration -> declaration.qualifiedName!!.asString() }
+            .map { declaration ->
                 require(declaration is KSClassDeclaration)
 
-                val (typeSpec, fileSpec) = fakeImplementationGenerator.generate(ksType, declaration)
+                val (typeSpec, fileSpec) = fakeImplementationGenerator.generate(declaration)
                 fileSpec.writeTo(codeGenerator, true)
                 logger.info("Generating fake for: ${declaration.qualifiedName}")
 

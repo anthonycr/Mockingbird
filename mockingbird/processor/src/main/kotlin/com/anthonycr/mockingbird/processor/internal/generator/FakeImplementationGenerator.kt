@@ -1,11 +1,9 @@
 package com.anthonycr.mockingbird.processor.internal.generator
 
 import com.anthonycr.mockingbird.core.Verifiable
-import com.anthonycr.mockingbird.processor.internal.noWrap
 import com.anthonycr.mockingbird.processor.internal.safePackageName
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
-import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.Modifier
 import com.squareup.kotlinpoet.ClassName
@@ -31,8 +29,8 @@ class FakeImplementationGenerator {
     /**
      * Generate the [TypeSpec] and [FileSpec] for a fake implementation of an interface.
      */
-    fun generate(ksType: KSType, declaration: KSClassDeclaration): Pair<TypeSpec, FileSpec> {
-        val fakeTypeSpec = generateFakeImplementation(ksType, declaration)
+    fun generate(declaration: KSClassDeclaration): Pair<TypeSpec, FileSpec> {
+        val fakeTypeSpec = generateFakeImplementation(declaration)
 
         return fakeTypeSpec to FileSpec.builder(
             declaration.safePackageName,
@@ -45,7 +43,6 @@ class FakeImplementationGenerator {
     }
 
     private fun generateFakeImplementation(
-        ksType: KSType,
         interfaceDeclaration: KSClassDeclaration
     ): TypeSpec {
         val interfaceName = interfaceDeclaration.simpleName.asString()
@@ -56,7 +53,7 @@ class FakeImplementationGenerator {
         }
         val implementationTypeSpec = TypeSpec.classBuilder(implementationClassName)
             .addModifiers(KModifier.PUBLIC)
-            .addSuperinterface(ksType.toClassName().maybeParameterizedBy(typeParameters))
+            .addSuperinterface(interfaceDeclaration.toClassName().maybeParameterizedBy(typeParameters))
             .addSuperinterface(Verifiable::class.asTypeName())
 
         implementationTypeSpec.addProperty(
@@ -146,13 +143,13 @@ class FakeImplementationGenerator {
                 .addStatement("val invocation = _mockingbird_invocations.firstOrNull()")
                 .beginControlFlow("check(invocation != null)")
                 .addStatement(
-                    "\"Expected an invocation, but got none instead\"".noWrap(),
+                    "\"Expected an invocation, but got none instead\"",
                 )
                 .endControlFlow()
                 .addStatement("_mockingbird_invocations.removeAt(0)")
                 .beginControlFlow("check(invocation.functionName == %S)", functionName)
                 .addStatement(
-                    "\"Expected function call %1L, \${invocation.functionName} was called instead\"".noWrap(),
+                    "\"Expected function call %1L, \${invocation.functionName} was called instead\"",
                     functionName,
                 )
                 .endControlFlow()
@@ -169,7 +166,7 @@ class FakeImplementationGenerator {
                             name
                         )
                         addStatement(
-                            "\"Expected argument \$%1L, found \${invocation.parameters[%2L]} instead.\"".noWrap(),
+                            "\"Expected argument \$%1L, found \${invocation.parameters[%2L]} instead.\"",
                             name,
                             index
                         )
