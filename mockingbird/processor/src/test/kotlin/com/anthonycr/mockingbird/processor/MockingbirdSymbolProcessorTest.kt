@@ -4,6 +4,7 @@ import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import com.tschuchort.compiletesting.configureKsp
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
+import org.jetbrains.kotlin.config.JvmTarget
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -21,6 +22,7 @@ class MockingbirdSymbolProcessorTest {
         inheritClassPath = true
         verbose = false
         sources = list
+        jvmTarget = JvmTarget.JVM_11.description
         configureKsp(useKsp2 = true) {
             symbolProcessorProviders += MockingbirdSymbolProcessorProvider()
         }
