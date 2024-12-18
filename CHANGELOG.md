@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.3.0 *(17 December 2024)*
+- Improve usability by allowing import of `fake` function before it's generated.
+- Fix issue where usage of the `fake` function like `val fake = fake<Type>()` would not compile.
+- Fix issue where usage of the `fake` function like `val fake = fake(Type::class.java)` would not compile.
+
 ## 1.2.0 *(15 September 2024)*
 - Add support for `verifyPartial` to allow for verifying only some invocations.
 
