@@ -22,7 +22,7 @@ class MockingbirdSymbolProcessorTest {
         inheritClassPath = true
         verbose = false
         sources = list
-        jvmTarget = JvmTarget.JVM_17.description
+        jvmTarget = JvmTarget.JVM_11.description
         configureKsp(useKsp2 = true) {
             symbolProcessorProviders += MockingbirdSymbolProcessorProvider()
         }
