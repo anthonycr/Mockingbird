@@ -21,16 +21,9 @@ class FakeFunctionGenerator {
      * fake interface.
      */
     fun generate(fakeImplementations: Map<KSClassDeclaration, TypeSpec>): FileSpec =
-        FileSpec.builder("com.anthonycr.mockingbird.core", "Fakes")
+        FileSpec.builder("com.anthonycr.mockingbird.core", "FakesInternal")
             .addFunction(
-                FunSpec.builder("fake")
-                    .addTypeVariable(TypeVariableName("reified T"))
-                    .returns(TypeVariableName("T"))
-                    .addModifiers(KModifier.INLINE)
-                    .addStatement("return fake(T::class.java)")
-                    .build()
-            ).addFunction(
-                FunSpec.builder("fake")
+                FunSpec.builder("fakeInternal")
                     .addTypeVariable(TypeVariableName("T"))
                     .addParameter(
                         "clazz",

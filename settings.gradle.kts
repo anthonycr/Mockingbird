@@ -25,6 +25,7 @@ plugins {
 
 rootProject.name = "Mockingbird"
 include(":mockingbird:core")
+include(":mockingbird:internal")
 include(":mockingbird:processor")
 include(":sample")
 include(":benchmark-mockk")
