@@ -70,6 +70,3 @@ class ClassToTestTest {
     }
 }
 ```
-
-Note: The `com.anthonycr.mockingbird.core.fake` function is generated at compile time, so it will not be
-available to import until KSP runs.
