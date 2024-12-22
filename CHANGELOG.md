@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 1.3.1 *(22 December 2024)*
+- Lower the Kotlin language version from 2.1 to 2.0 to permit compatibility with older projects.
+
 ## 1.3.0 *(17 December 2024)*
 - Improve usability by allowing import of `fake` function before it's generated.
 - Fix issue where usage of the `fake` function like `val fake = fake<Type>()` would not compile.
