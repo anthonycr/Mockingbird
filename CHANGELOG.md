@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 1.4.0 *(2 March 2025)*
+- Improve error logging to include the file location in the logs.
+
 ## 1.3.1 *(22 December 2024)*
 - Lower the Kotlin language version from 2.1 to 2.0 to permit compatibility with older projects.
 
