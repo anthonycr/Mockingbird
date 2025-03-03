@@ -11,9 +11,7 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
-import com.google.devtools.ksp.symbol.KSType
 import com.squareup.kotlinpoet.ksp.writeTo
 
 class MockingbirdSymbolProcessor(
@@ -33,17 +31,15 @@ class MockingbirdSymbolProcessor(
                 node = { it },
                 condition = { it is KSPropertyDeclaration }
             )
-            .map { declaration ->
-                require(declaration is KSPropertyDeclaration)
-
-                declaration.type.resolve().declaration
-            }
+            .filterIsInstance<KSPropertyDeclaration>()
+            .map { declaration -> declaration to declaration.type.resolve().declaration }
             .check(
                 message = "Only interfaces can be verified",
                 logger = logger,
-                node = { it },
-                condition = { declaration -> declaration.isInterface }
+                node = { (declaration, _) -> declaration },
+                condition = { (_, resolvedDeclaration) -> resolvedDeclaration.isInterface }
             )
+            .map { (_, resolvedDeclaration) -> resolvedDeclaration }
             .distinctBy { declaration -> declaration.qualifiedName!!.asString() }
             .map { declaration ->
                 require(declaration is KSClassDeclaration)

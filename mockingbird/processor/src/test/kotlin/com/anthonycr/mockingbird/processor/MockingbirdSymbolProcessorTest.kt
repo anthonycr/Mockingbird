@@ -41,7 +41,7 @@ class MockingbirdSymbolProcessorTest {
         val result = compile(listOf(nonInterfaceAnnotatedSource))
 
         Assert.assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, result.exitCode)
-        Assert.assertTrue(result.messages.contains("/Test2.kt:5: Only interfaces can be verified"))
+        Assert.assertTrue(result.messages.contains(Regex("\\s.*/Test2.kt:13: Only interfaces can be verified:\\s.*/Test2.kt:13")))
     }
 
     @Test
