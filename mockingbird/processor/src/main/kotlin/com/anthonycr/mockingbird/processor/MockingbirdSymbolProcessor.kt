@@ -39,18 +39,20 @@ class MockingbirdSymbolProcessor(
                 node = { (declaration, _) -> declaration },
                 condition = { (_, resolvedDeclaration) -> resolvedDeclaration.isInterface }
             )
-            .map { (_, resolvedDeclaration) -> resolvedDeclaration }
-            .distinctBy { declaration -> declaration.qualifiedName!!.asString() }
-            .map { declaration ->
-                require(declaration is KSClassDeclaration)
+            .groupBy { (_, resolvedDeclaration) -> resolvedDeclaration.qualifiedName!!.asString() }
+            .map { (_, entries) -> entries.first().second to entries.map { (propertyDeclaration, _) -> propertyDeclaration } }
+            .map { (resolvedDeclaration, propertyDeclarations) ->
+                require(resolvedDeclaration is KSClassDeclaration)
 
-                val (typeSpec, fileSpec) = fakeImplementationGenerator.generate(declaration)
+                val (typeSpec, fileSpec) = fakeImplementationGenerator.generate(
+                    propertyDeclarations,
+                    resolvedDeclaration
+                )
                 fileSpec.writeTo(codeGenerator, true)
-                logger.info("Generating fake for: ${declaration.qualifiedName}")
+                logger.info("Generating fake for: ${resolvedDeclaration.qualifiedName}")
 
-                Pair(declaration, typeSpec)
+                Triple(propertyDeclarations, resolvedDeclaration, typeSpec)
             }
-            .associate { it }
 
         if (fakes.isNotEmpty()) {
             fakeFunctionGenerator.generate(fakes).writeTo(codeGenerator, true)
