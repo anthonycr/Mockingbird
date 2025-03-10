@@ -2,6 +2,7 @@ package com.anthonycr.mockingbird.processor
 
 import com.anthonycr.mockingbird.core.Verify
 import com.anthonycr.mockingbird.processor.internal.check
+import com.anthonycr.mockingbird.processor.internal.data.KSClassDeclarationKey
 import com.anthonycr.mockingbird.processor.internal.generator.FakeFunctionGenerator
 import com.anthonycr.mockingbird.processor.internal.generator.FakeImplementationGenerator
 import com.anthonycr.mockingbird.processor.internal.isInterface
@@ -39,11 +40,14 @@ class MockingbirdSymbolProcessor(
                 node = { (declaration, _) -> declaration },
                 condition = { (_, resolvedDeclaration) -> resolvedDeclaration.isInterface }
             )
-            .groupBy { (_, resolvedDeclaration) -> resolvedDeclaration.qualifiedName!!.asString() }
-            .map { (_, entries) -> entries.first().second to entries.map { (propertyDeclaration, _) -> propertyDeclaration } }
-            .map { (resolvedDeclaration, propertyDeclarations) ->
-                require(resolvedDeclaration is KSClassDeclaration)
-
+            .groupBy(
+                keySelector = { (_, resolvedDeclaration) ->
+                    KSClassDeclarationKey(resolvedDeclaration as KSClassDeclaration)
+                },
+                valueTransform = { (propertyDeclaration, _) -> propertyDeclaration }
+            )
+            .map { (resolvedDeclarationKey, propertyDeclarations) ->
+                val (resolvedDeclaration) = resolvedDeclarationKey
                 val (typeSpec, fileSpec) = fakeImplementationGenerator.generate(
                     propertyDeclarations,
                     resolvedDeclaration
