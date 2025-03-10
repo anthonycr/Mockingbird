@@ -1,6 +1,7 @@
 package com.anthonycr.mockingbird.processor.internal.data
 
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSDeclaration
 
 /**
  * A wrapper for [KSClassDeclaration] that allows it to be safely used as a key in a map or set.
@@ -27,3 +28,9 @@ data class KSClassDeclarationKey(
 
     override fun toString(): String = "KSClassDeclarationKey(key='$key')"
 }
+
+/**
+ * Convert the [KSDeclaration] to a [KSClassDeclarationKey].
+ */
+fun KSDeclaration.asKey(): KSClassDeclarationKey =
+    KSClassDeclarationKey(this as KSClassDeclaration)

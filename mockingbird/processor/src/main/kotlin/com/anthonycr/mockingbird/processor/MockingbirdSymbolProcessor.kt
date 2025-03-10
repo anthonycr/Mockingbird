@@ -2,7 +2,7 @@ package com.anthonycr.mockingbird.processor
 
 import com.anthonycr.mockingbird.core.Verify
 import com.anthonycr.mockingbird.processor.internal.check
-import com.anthonycr.mockingbird.processor.internal.data.KSClassDeclarationKey
+import com.anthonycr.mockingbird.processor.internal.data.asKey
 import com.anthonycr.mockingbird.processor.internal.generator.FakeFunctionGenerator
 import com.anthonycr.mockingbird.processor.internal.generator.FakeImplementationGenerator
 import com.anthonycr.mockingbird.processor.internal.isInterface
@@ -11,7 +11,6 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
-import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.squareup.kotlinpoet.ksp.writeTo
 
@@ -41,9 +40,7 @@ class MockingbirdSymbolProcessor(
                 condition = { (_, resolvedDeclaration) -> resolvedDeclaration.isInterface }
             )
             .groupBy(
-                keySelector = { (_, resolvedDeclaration) ->
-                    KSClassDeclarationKey(resolvedDeclaration as KSClassDeclaration)
-                },
+                keySelector = { (_, resolvedDeclaration) -> resolvedDeclaration.asKey() },
                 valueTransform = { (propertyDeclaration, _) -> propertyDeclaration }
             )
             .map { (resolvedDeclarationKey, propertyDeclarations) ->
