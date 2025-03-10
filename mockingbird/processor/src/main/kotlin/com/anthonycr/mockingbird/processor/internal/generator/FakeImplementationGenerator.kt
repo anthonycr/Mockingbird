@@ -4,6 +4,7 @@ import com.anthonycr.mockingbird.core.Verifiable
 import com.anthonycr.mockingbird.processor.internal.safePackageName
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.Modifier
 import com.squareup.kotlinpoet.ClassName
@@ -18,6 +19,7 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.asTypeName
+import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 
@@ -29,8 +31,11 @@ class FakeImplementationGenerator {
     /**
      * Generate the [TypeSpec] and [FileSpec] for a fake implementation of an interface.
      */
-    fun generate(declaration: KSClassDeclaration): Pair<TypeSpec, FileSpec> {
-        val fakeTypeSpec = generateFakeImplementation(declaration)
+    fun generate(
+        propertyDeclarations: List<KSPropertyDeclaration>,
+        declaration: KSClassDeclaration
+    ): Pair<TypeSpec, FileSpec> {
+        val fakeTypeSpec = generateFakeImplementation(propertyDeclarations, declaration)
 
         return fakeTypeSpec to FileSpec.builder(
             declaration.safePackageName,
@@ -43,6 +48,7 @@ class FakeImplementationGenerator {
     }
 
     private fun generateFakeImplementation(
+        propertyDeclarations: List<KSPropertyDeclaration>,
         interfaceDeclaration: KSClassDeclaration
     ): TypeSpec {
         val interfaceName = interfaceDeclaration.simpleName.asString()
@@ -53,7 +59,9 @@ class FakeImplementationGenerator {
         }
         val implementationTypeSpec = TypeSpec.classBuilder(implementationClassName)
             .addModifiers(KModifier.PUBLIC)
-            .addSuperinterface(interfaceDeclaration.toClassName().maybeParameterizedBy(typeParameters))
+            .addSuperinterface(
+                interfaceDeclaration.toClassName().maybeParameterizedBy(typeParameters)
+            )
             .addSuperinterface(Verifiable::class.asTypeName())
 
         implementationTypeSpec.addProperty(
@@ -184,6 +192,13 @@ class FakeImplementationGenerator {
                 .addStatement("return Unit")
 
             implementationTypeSpec.addFunction(funSpec.build())
+        }
+
+        propertyDeclarations.mapNotNull { it.containingFile }.forEach {
+            implementationTypeSpec.addOriginatingKSFile(it)
+        }
+        interfaceDeclaration.containingFile?.let {
+            implementationTypeSpec.addOriginatingKSFile(it)
         }
 
         return implementationTypeSpec.build()
