@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 1.5.0 *(11 March 2025)*
+- Fix issues with incremental compilation not triggering reprocessing.
+
 ## 1.4.0 *(2 March 2025)*
 - Improve error logging to include the file location in the logs.
 
