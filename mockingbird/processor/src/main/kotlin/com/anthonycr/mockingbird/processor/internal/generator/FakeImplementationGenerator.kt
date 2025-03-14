@@ -1,6 +1,7 @@
 package com.anthonycr.mockingbird.processor.internal.generator
 
 import com.anthonycr.mockingbird.core.Verifiable
+import com.anthonycr.mockingbird.core.VerificationContext
 import com.anthonycr.mockingbird.processor.internal.safePackageName
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
@@ -11,7 +12,6 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
@@ -78,34 +78,13 @@ class FakeImplementationGenerator {
 
         implementationTypeSpec.addProperty(
             PropertySpec.builder(
-                "_mockingbird_paramMatcher",
-                ClassName(
-                    "kotlin.collections",
-                    "List"
-                ).parameterizedBy(
-                    LambdaTypeName.get(
-                        parameters = arrayOf(
-                            Any::class.asTypeName().copy(nullable = true),
-                            Any::class.asTypeName().copy(nullable = true)
-                        ),
-                        returnType = Boolean::class.asTypeName()
-                    )
-                )
+                "_mockingbird_verificationContext",
+                VerificationContext::class.asTypeName().copy(nullable = true)
             )
-                .initializer("listOf { e, a -> e == a }")
+                .initializer("null")
                 .addModifiers(KModifier.OVERRIDE)
                 .mutable(true)
                 .build()
-        )
-
-        implementationTypeSpec.addProperty(
-            PropertySpec.builder(
-                "_mockingbird_verifying",
-                Boolean::class.asClassName()
-            )
-                .initializer("false")
-                .addModifiers(KModifier.OVERRIDE)
-                .mutable(true).build()
         )
 
         val unitTypeName = Unit::class.asTypeName()
@@ -147,7 +126,9 @@ class FakeImplementationGenerator {
 
             val functionName = function.qualifiedName!!.asString()
 
-            funSpec.beginControlFlow("if (_mockingbird_verifying)")
+            funSpec
+                .addStatement("val verificationContext = _mockingbird_verificationContext")
+                .beginControlFlow("if (verificationContext != null)")
                 .addStatement("val invocation = _mockingbird_invocations.firstOrNull()")
                 .beginControlFlow("check(invocation != null)")
                 .addStatement(
@@ -163,13 +144,15 @@ class FakeImplementationGenerator {
                 .endControlFlow()
                 .apply {
                     if (function.parameters.isEmpty()) return@apply
-                    beginControlFlow("val allParamVerifier = _mockingbird_paramMatcher.firstOrNull()?.takeIf { _ ->")
-                    addStatement("_mockingbird_paramMatcher.size != invocation.parameters.size")
+                    beginControlFlow("if (verificationContext.parameterMatcher.isNotEmpty())")
+                    beginControlFlow("check(verificationContext.parameterMatcher.size == invocation.parameters.size)")
+                    addStatement("\"Expected \${invocation.parameters.size} matchers, found \${verificationContext.parameterMatcher.size} instead. When using custom parameter verification, all parameters must use matchers.\"")
+                    endControlFlow()
                     endControlFlow()
                     function.parameters.forEachIndexed { index, value ->
                         val name = value.name!!.asString()
                         beginControlFlow(
-                            "check((allParamVerifier ?: _mockingbird_paramMatcher[%1L]).invoke(%2L, invocation.parameters[%1L]))",
+                            "check((verificationContext.parameterMatcher.getOrNull(%1L) ?: VerificationContext.DEFAULT_MATCHER).invoke(%2L, invocation.parameters[%1L]))",
                             index,
                             name
                         )
@@ -180,7 +163,7 @@ class FakeImplementationGenerator {
                         )
                         endControlFlow()
                     }
-                    addStatement("_mockingbird_paramMatcher = listOf { e, a -> e == a }")
+                    addStatement("verificationContext.parameterMatcher = emptyList()")
                 }
                 .nextControlFlow("else")
                 .addStatement(
