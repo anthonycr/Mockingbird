@@ -6,11 +6,14 @@ import com.anthonycr.mockingbird.processor.internal.data.asKey
 import com.anthonycr.mockingbird.processor.internal.generator.FakeFunctionGenerator
 import com.anthonycr.mockingbird.processor.internal.generator.FakeImplementationGenerator
 import com.anthonycr.mockingbird.processor.internal.isInterface
+import com.google.devtools.ksp.getConstructors
+import com.google.devtools.ksp.isAbstract
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
+import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.squareup.kotlinpoet.ksp.writeTo
 
@@ -34,10 +37,25 @@ class MockingbirdSymbolProcessor(
             .filterIsInstance<KSPropertyDeclaration>()
             .map { declaration -> declaration to declaration.type.resolve().declaration }
             .check(
-                message = "Only interfaces can be verified",
+                message = "Only interfaces and abstract classes can be verified",
                 logger = logger,
                 node = { (declaration, _) -> declaration },
-                condition = { (_, resolvedDeclaration) -> resolvedDeclaration.isInterface }
+                condition = { (_, resolvedDeclaration) ->
+                    resolvedDeclaration is KSClassDeclaration &&
+                            (resolvedDeclaration.isInterface || resolvedDeclaration.isAbstract())
+                }
+            )
+            .filterIsInstance<Pair<KSPropertyDeclaration, KSClassDeclaration>>()
+            .check(
+                message = "Only abstract classes with zero argument constructors can be verified",
+                logger = logger,
+                node = { (declaration, _) -> declaration },
+                condition = { (_, resolvedDeclaration) ->
+                    resolvedDeclaration.getConstructors()
+                        .filter { it.parameters.isNotEmpty() }
+                        .toList()
+                        .isEmpty()
+                }
             )
             .groupBy(
                 keySelector = { (_, resolvedDeclaration) -> resolvedDeclaration.asKey() },

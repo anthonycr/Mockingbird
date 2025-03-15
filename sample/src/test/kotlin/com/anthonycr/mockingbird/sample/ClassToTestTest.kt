@@ -27,10 +27,24 @@ class ClassToTestTest {
     @Verify
     val interfaceToVerify2 = fake(InterfaceToVerify2::class.java)
 
+    @Verify
+    val classToVerify1 = fake<ClassToVerify1>()
+
+    @Verify
+    val classToVerify2 = fake<ClassToVerify2>()
+
+    private fun createClassToTest() = ClassToTest(
+        lambdaToVerify1,
+        lambdaToVerify2,
+        interfaceToVerify1,
+        interfaceToVerify2,
+        classToVerify1,
+        classToVerify2
+    )
+
     @Test
     fun act1() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act1()
 
@@ -45,8 +59,7 @@ class ClassToTestTest {
 
     @Test(expected = IllegalStateException::class)
     fun `act1 expected failure`() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act1()
 
@@ -59,8 +72,7 @@ class ClassToTestTest {
 
     @Test
     fun act2() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act2()
 
@@ -74,8 +86,7 @@ class ClassToTestTest {
 
     @Test(expected = IllegalStateException::class)
     fun `act2 expected failure`() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act2()
 
@@ -87,8 +98,7 @@ class ClassToTestTest {
 
     @Test
     fun act3() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act3()
 
@@ -102,8 +112,7 @@ class ClassToTestTest {
 
     @Test(expected = IllegalStateException::class)
     fun `act3  expected failure`() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act3()
 
@@ -117,8 +126,7 @@ class ClassToTestTest {
 
     @Test
     fun act4() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act4()
 
@@ -129,8 +137,7 @@ class ClassToTestTest {
 
     @Test(expected = IllegalStateException::class)
     fun `act3 expected failure`() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act3()
 
@@ -140,8 +147,7 @@ class ClassToTestTest {
 
     @Test(expected = IllegalStateException::class)
     fun `act3 expected failure unverified`() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act3()
 
@@ -154,8 +160,7 @@ class ClassToTestTest {
 
     @Test
     fun `act3 passes with unverified using verifyPartial`() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act3()
 
@@ -168,8 +173,7 @@ class ClassToTestTest {
 
     @Test(expected = IllegalStateException::class)
     fun `double verify expected failure`() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act3()
 
@@ -182,8 +186,7 @@ class ClassToTestTest {
 
     @Test(expected = IllegalStateException::class)
     fun `verifyNoInvocations within verify expected failure`() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act3()
 
@@ -194,8 +197,7 @@ class ClassToTestTest {
 
     @Test(expected = IllegalStateException::class)
     fun `verification of inequitable type expected failure`() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act5()
 
@@ -206,8 +208,7 @@ class ClassToTestTest {
 
     @Test
     fun `verification of inequitable type with verifyIgnoreParameter`() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act5()
 
@@ -218,8 +219,7 @@ class ClassToTestTest {
 
     @Test
     fun `verification of inequitable type with verifyParams`() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act5()
 
@@ -233,8 +233,7 @@ class ClassToTestTest {
 
     @Test(expected = IllegalStateException::class)
     fun `verification of inequitable type with verifyParams expected failure`() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act5()
 
@@ -248,8 +247,7 @@ class ClassToTestTest {
 
     @Test
     fun `verification of multiple types with verifyParams`() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act6()
 
@@ -265,16 +263,14 @@ class ClassToTestTest {
 
     @Test(expected = IllegalStateException::class)
     fun `verification of non Unit returns is not allowed`() {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act7()
     }
 
     @Test
     fun `verification of suspending function works as expected`() = runTest {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act8()
 
@@ -285,8 +281,7 @@ class ClassToTestTest {
 
     @Test
     fun `verification of suspending functions parameters works as expected`() = runTest {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act8()
 
@@ -300,9 +295,31 @@ class ClassToTestTest {
 
     @Test(expected = IllegalStateException::class)
     fun `verification of non Unit returns suspending function is not allowed`() = runTest {
-        val classToTest =
-            ClassToTest(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2)
+        val classToTest = createClassToTest()
 
         classToTest.act9()
+    }
+
+    @Test
+    fun `abstract class with all abstract functions can be verified`() {
+        val classToTest = createClassToTest()
+
+        classToTest.act10()
+
+        verify(classToVerify1) {
+            classToVerify1.act1()
+        }
+    }
+
+    @Test
+    fun `abstract class with an abstract function and real function can be verified`() {
+        val classToTest = createClassToTest()
+
+        classToTest.act11()
+
+        verify(classToVerify2) {
+            classToVerify2.act1("one")
+            classToVerify2.act1("two")
+        }
     }
 }

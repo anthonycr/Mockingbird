@@ -41,7 +41,7 @@ class MockingbirdSymbolProcessorTest {
         val result = compile(listOf(nonInterfaceAnnotatedSource))
 
         Assert.assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, result.exitCode)
-        Assert.assertTrue(result.messages.contains(Regex("\\s.*/Test2.kt:13: Only interfaces can be verified:\\s.*/Test2.kt:13")))
+        Assert.assertTrue(result.messages.contains(Regex("\\s.*/Test2.kt:13: Only interfaces and abstract classes can be verified:\\s.*/Test2.kt:13")))
     }
 
     @Test
@@ -63,5 +63,27 @@ class MockingbirdSymbolProcessorTest {
         val result = compile(listOf(validFunctionReferenceAnnotatedSource))
 
         Assert.assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+    }
+
+    @Test
+    fun `abstract class with abstract function compiles successfully`() {
+        val result = compile(listOf(validAbstractClassOneFunction))
+
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+    }
+
+    @Test
+    fun `abstract class with abstract function and real function compiles successfully`() {
+        val result = compile(listOf(validAbstractClassRealAndAbstractFunction))
+
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+    }
+
+    @Test
+    fun `abstract class with constructor parameters fails to compile`() {
+        val result = compile(listOf(invalidAbstractClassWithConstructorParameters))
+
+        Assert.assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, result.exitCode)
+        Assert.assertTrue(result.messages.contains(Regex("\\s.*/Test8.kt:12: Only abstract classes with zero argument constructors can be verified:\\s.*/Test8.kt:12")))
     }
 }

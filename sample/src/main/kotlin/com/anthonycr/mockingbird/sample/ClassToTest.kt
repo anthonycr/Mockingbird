@@ -4,7 +4,9 @@ class ClassToTest(
     private val lambdaToVerify1: (String) -> Unit,
     private val lambdaToVerify2: (Int) -> Unit,
     private val interfaceToVerify1: InterfaceToVerify1,
-    private val interfaceToVerify2: InterfaceToVerify2
+    private val interfaceToVerify2: InterfaceToVerify2,
+    private val classToVerify1: ClassToVerify1,
+    private val classToVerify2: ClassToVerify2,
 ) {
 
     fun act1() {
@@ -51,6 +53,15 @@ class ClassToTest(
 
     suspend fun act9() {
         interfaceToVerify2.performAction5()
+    }
+
+    fun act10() {
+        classToVerify1.act1()
+    }
+
+    fun act11() {
+        classToVerify2.act1("one")
+        classToVerify2.act2("two")
     }
 
 }
