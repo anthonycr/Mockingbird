@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 1.6.0 *(17 March 2025)*
+- Add support to verifying abstract functions in abstract classes with zero argument constructors.
+
 ## 1.5.0 *(11 March 2025)*
 - Fix issues with incremental compilation not triggering reprocessing.
 
