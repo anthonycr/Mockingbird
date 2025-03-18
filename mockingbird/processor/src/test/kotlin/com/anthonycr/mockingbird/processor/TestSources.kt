@@ -81,3 +81,53 @@ val validFunctionReferenceAnnotatedSource = SourceFile.kotlin("Test5.kt", """
     }
 """.trimIndent())
 
+val validAbstractClassOneFunction = SourceFile.kotlin("Test6.kt", """
+    package com.anthonycr.test
+
+    import com.anthonycr.mockingbird.core.fake
+    import com.anthonycr.mockingbird.core.Verify
+    
+    abstract class AbstractClass {
+        abstract fun aFunction()
+    }
+
+    class Test3 {
+        @Verify
+        private val abstractClass = fake<AbstractClass>()
+    }
+""".trimIndent())
+
+val validAbstractClassRealAndAbstractFunction = SourceFile.kotlin("Test7.kt", """
+    package com.anthonycr.test
+
+    import com.anthonycr.mockingbird.core.fake
+    import com.anthonycr.mockingbird.core.Verify
+    
+    abstract class AbstractClass {
+        abstract fun aFunction()
+        
+        fun aRealFunction() = aFunction()
+    }
+
+    class Test3 {
+        @Verify
+        private val abstractClass = fake<AbstractClass>()
+    }
+""".trimIndent())
+
+val invalidAbstractClassWithConstructorParameters = SourceFile.kotlin("Test8.kt", """
+    package com.anthonycr.test
+
+    import com.anthonycr.mockingbird.core.fake
+    import com.anthonycr.mockingbird.core.Verify
+    
+    abstract class AbstractClass(val parameter: String) {
+        abstract fun aFunction()
+    }
+
+    class Test3 {
+        @Verify
+        private val abstractClass = fake<AbstractClass>()
+    }
+""".trimIndent())
+

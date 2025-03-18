@@ -1,6 +1,7 @@
 package com.anthonycr.mockingbird.processor.internal.generator
 
 import com.anthonycr.mockingbird.core.Verifiable
+import com.anthonycr.mockingbird.processor.internal.isInterface
 import com.anthonycr.mockingbird.processor.internal.safePackageName
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
@@ -59,9 +60,17 @@ class FakeImplementationGenerator {
         }
         val implementationTypeSpec = TypeSpec.classBuilder(implementationClassName)
             .addModifiers(KModifier.PUBLIC)
-            .addSuperinterface(
-                interfaceDeclaration.toClassName().maybeParameterizedBy(typeParameters)
-            )
+            .apply {
+                if (interfaceDeclaration.isInterface) {
+                    addSuperinterface(
+                        interfaceDeclaration.toClassName().maybeParameterizedBy(typeParameters)
+                    )
+                } else {
+                    superclass(
+                        interfaceDeclaration.toClassName().maybeParameterizedBy(typeParameters)
+                    )
+                }
+            }
             .addSuperinterface(Verifiable::class.asTypeName())
 
         implementationTypeSpec.addProperty(
@@ -118,7 +127,11 @@ class FakeImplementationGenerator {
             }
             return typeParameters.getOrNull(parameters.indexOf(toString()))
         }
-        for (function in interfaceDeclaration.declarations.filterIsInstance<KSFunctionDeclaration>()) {
+
+        val functions = interfaceDeclaration.declarations
+            .filterIsInstance<KSFunctionDeclaration>()
+            .filter { it.isAbstract }
+        for (function in functions) {
             val returnType = function.returnType?.resolveType() ?: unitTypeName
             val funSpec = FunSpec.builder(function.simpleName.asString())
                 .addModifiers(KModifier.OVERRIDE)
