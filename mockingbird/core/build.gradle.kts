@@ -23,6 +23,8 @@ java {
 }
 dependencies {
     commonMainCompileOnly(project(":mockingbird:internal"))
+
+    commonTestImplementation(libs.junit)
 }
 
 mavenPublishing {
