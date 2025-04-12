@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.7.0 *(26 March 2025)*
+- Improve error message when `fake` function is used without properly applying the `kspTest` dependency.
+
+## 1.6.0 *(17 March 2025)*
+- Add support to verifying abstract functions in abstract classes with zero argument constructors.
+
 ## 1.5.0 *(11 March 2025)*
 - Fix issues with incremental compilation not triggering reprocessing.
 

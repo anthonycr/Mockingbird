@@ -1,9 +1,9 @@
 # Mockingbird
 
 A minimalist faking framework exclusively for verifying interactions. It generates fake
-implementations of interfaces that can be verified during a test using Kotlin Symbol Processing
-(KSP). It does not allow mocking behavior or return values, and does not support mocking concrete
-classes.
+implementations of interfaces and abstract classes that can be verified during a test using Kotlin
+Symbol Processing (KSP). It does not allow mocking behavior or return values, and does not support
+mocking concrete classes.
 
 ## Why?
 
@@ -17,8 +17,8 @@ slow to construct, which in turn slows down test execution.
 Fakes are less forgiving then mocks and require better class design in order to support testing.
 Because they are less flexible, they have less potential to be abused. However, it can be annoying
 to verify interactions on fakes because they are usually handwritten. Mockingbird auto-generates
-fake implementations of interfaces that have `Unit` function types - types usually performing side
-effects that are most often verified by a mocking framework.
+fake implementations of interfaces and abstract classes that have `Unit` function types - types
+usually performing side effects that are most often verified by a mocking framework.
 
 ## Usage
 
@@ -36,7 +36,9 @@ kspTest("com.anthonycr.mockingbird:processor:<latest_version>")
 Make sure you have the KSP Gradle plugin enabled as well.
 
 Within your test, add the following annotation to a property that you wish to verify. Note that the
-property you are verifying must be an interface with all functions returning `Unit`.
+property you are verifying must be an interface or abstract class with a zero argument constructor.
+All functions you wish to verify must return `Unit` and when verifying an abstract class, the
+function must be abstract.
 
 ```kotlin
 import com.anthonycr.mockingbird.core.Verify

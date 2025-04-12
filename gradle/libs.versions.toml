@@ -1,8 +1,8 @@
 [versions]
 junit = "4.13.2"
-jetbrainsKotlin = "2.1.10"
+jetbrainsKotlin = "2.1.20"
 kotlinpoet = "2.1.0"
-ksp = "2.1.10-1.0.31"
+ksp = "2.1.20-2.0.0"
 jvm = "17"
 
 [libraries]
@@ -11,8 +11,8 @@ ksp-api = { group = "com.google.devtools.ksp", name = "symbol-processing-api", v
 kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }
 kotlinpoet-ksp = { group = "com.squareup", name = "kotlinpoet-ksp", version.ref = "kotlinpoet" }
 compiletesting = { group = "dev.zacsweers.kctfork", name = "ksp", version = "0.7.0" }
-mockk = { group = "io.mockk", name = "mockk", version = "1.13.17" }
-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version = "1.10.1" }
+mockk = { group = "io.mockk", name = "mockk", version = "1.14.0" }
+coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version = "1.10.2" }
 
 [plugins]
 ksp-plugin = { id = "com.google.devtools.ksp", version.ref = "ksp" }
