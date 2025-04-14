@@ -1,14 +1,9 @@
 package com.anthonycr.mockingbird.sample
 
 import com.anthonycr.mockingbird.core.Verify
-import com.anthonycr.mockingbird.core.any
-import com.anthonycr.mockingbird.core.eq
 import com.anthonycr.mockingbird.core.fake
-import com.anthonycr.mockingbird.core.sameAs
 import com.anthonycr.mockingbird.core.verify
 import com.anthonycr.mockingbird.core.verifyComplete
-import com.anthonycr.mockingbird.core.verifyIgnoreParams
-import com.anthonycr.mockingbird.core.verifyParams
 import com.anthonycr.mockingbird.core.verifyPartial
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -207,56 +202,38 @@ class ClassToTestTest {
     }
 
     @Test
-    fun `verification of inequitable type with verifyIgnoreParameter`() {
+    fun `verification of inequitable type with parameter verification`() {
         val classToTest = createClassToTest()
 
         classToTest.act5()
 
         verify(interfaceToVerify1) {
-            interfaceToVerify1.verifyIgnoreParams { performAction3(Exception("test")) }
-        }
-    }
-
-    @Test
-    fun `verification of inequitable type with verifyParams`() {
-        val classToTest = createClassToTest()
-
-        classToTest.act5()
-
-        verify(interfaceToVerify1) {
-            interfaceToVerify1.verifyParams(
-                func = InterfaceToVerify1::performAction3,
-                p0 = sameAs(Exception("test")) { e, a -> e.message == a.message }
-            )
+            interfaceToVerify1.performAction3(sameAs(Exception("test")) { a -> a.message == "test" })
         }
     }
 
     @Test(expected = IllegalStateException::class)
-    fun `verification of inequitable type with verifyParams expected failure`() {
+    fun `verification of inequitable type with parameter verification expected failure`() {
         val classToTest = createClassToTest()
 
         classToTest.act5()
 
         verify(interfaceToVerify1) {
-            interfaceToVerify1.verifyParams(
-                func = InterfaceToVerify1::performAction3,
-                p0 = sameAs(Exception("test1")) { e, a -> e.message == a.message }
-            )
+            interfaceToVerify1.performAction3(sameAs(Exception("test1")) { a -> a.message == "test1" })
         }
     }
 
     @Test
-    fun `verification of multiple types with verifyParams`() {
+    fun `verification of multiple types with parameter verification`() {
         val classToTest = createClassToTest()
 
         classToTest.act6()
 
         verify(interfaceToVerify1) {
-            interfaceToVerify1.verifyParams(
-                func = InterfaceToVerify1::performAction4,
-                p0 = eq("one"),
-                p1 = any(1),
-                p2 = sameAs(Exception("test")) { e, a -> e.message == a.message }
+            interfaceToVerify1.performAction4(
+                one = eq("one"),
+                two = any(1),
+                exception = sameAs(Exception("test")) { a -> a.message == "test" }
             )
         }
     }
@@ -286,10 +263,7 @@ class ClassToTestTest {
         classToTest.act8()
 
         verify(interfaceToVerify2) {
-            interfaceToVerify2.verifyParams(
-                func = InterfaceToVerify2::performAction4,
-                p0 = eq("one")
-            )
+            interfaceToVerify2.performAction4(eq("one"))
         }
     }
 
