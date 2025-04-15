@@ -47,11 +47,17 @@ import com.anthonycr.mockingbird.core.verify
 
 interface Analytics {
     fun trackEvent(event: String)
+
+    fun trackError(exception: Exception)
 }
 
 class ClassToTest(private val analytics: Analytics) {
     fun doSomething() {
         analytics.trackEvent("doSomething was called!")
+    }
+
+    fun doSomethingElse() {
+        analytics.trackError(RuntimeException("Something went wrong"))
     }
 }
 
@@ -68,6 +74,21 @@ class ClassToTestTest {
 
         verify(analytics) {
             analytics.trackEvent("doSomething was called!")
+        }
+    }
+
+    @Test
+    fun `analytics error for doSomethingElse was triggered`() {
+        val classToTest = ClassToTest(analytics)
+
+        classToTest.doSomething()
+
+        verify(analytics) {
+            analytics.trackError(
+                sameAs(RuntimeException("Something went wrong")) { e ->
+                    e.message == "Something went wrong")
+                }
+            )
         }
     }
 }
