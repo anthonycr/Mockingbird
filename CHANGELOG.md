@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.0.0 *(15 April 2025)*
+- Simplified support for parameter verification that no longer requires function references and instead allows matchers to be passed as arguments.
+
 ## 1.7.0 *(26 March 2025)*
 - Improve error message when `fake` function is used without properly applying the `kspTest` dependency.
 
