@@ -81,7 +81,7 @@ class ClassToTestTest {
     fun `analytics error for doSomethingElse was triggered`() {
         val classToTest = ClassToTest(analytics)
 
-        classToTest.doSomething()
+        classToTest.doSomethingElse()
 
         verify(analytics) {
             analytics.trackError(
