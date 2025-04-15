@@ -239,6 +239,21 @@ class ClassToTestTest {
     }
 
     @Test(expected = IllegalStateException::class)
+    fun `verification of multiple types with parameter verification expected failure`() {
+        val classToTest = createClassToTest()
+
+        classToTest.act6()
+
+        verify(interfaceToVerify1) {
+            interfaceToVerify1.performAction4(
+                one = "one",
+                two = 1,
+                exception = sameAs(Exception("test")) { a -> a.message == "test" }
+            )
+        }
+    }
+
+    @Test(expected = IllegalStateException::class)
     fun `verification of non Unit returns is not allowed`() {
         val classToTest = createClassToTest()
 
