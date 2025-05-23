@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.1.0 *(23 May 2025)*
+- Updated KotlinPoet to 2.2.0
+- Updated Kotlin to 2.1.21
+
 ## 2.0.0 *(15 April 2025)*
 - Simplified support for parameter verification that no longer requires function references and instead allows matchers to be passed as arguments.
 
