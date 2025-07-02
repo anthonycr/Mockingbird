@@ -14,6 +14,6 @@ dependencies {
 }
 
 ksp {
-    arg("benchmark.object_count", "3")
+    arg("benchmark.object_count", "2")
     arg("benchmark.test_count", "100")
 }
