@@ -16,6 +16,6 @@ dependencies {
 }
 
 ksp {
-    arg("benchmark.interface_count", "2")
-    arg("benchmark.test_count", "100")
+    arg("benchmark.interface_count", System.getenv().getOrDefault("under_test", "2"))
+    arg("benchmark.test_count", System.getenv().getOrDefault("test_count", "100"))
 }
