@@ -2,12 +2,15 @@
 
 # shellcheck disable=SC2034
 under_test="3"
-test_count="200"
+test_count="500"
 
 iterations=10
 
 
 ./gradlew clean :mockingbird:processor:build > /dev/null 2>&1
+./gradlew :benchmark:mockingbird:executor:test --dry-run > /dev/null 2>&1
+./gradlew :benchmark:mockk-interface:executor:test --dry-run > /dev/null 2>&1
+./gradlew :benchmark:mockk-static:executor:test --dry-run > /dev/null 2>&1
 
 start_time=$(date +%s%N)
 
