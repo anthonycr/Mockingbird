@@ -93,3 +93,27 @@ class ClassToTestTest {
     }
 }
 ```
+
+## Benchmark
+Run `./benchmark.sh` to execute a benchmark comparison of Mockingbird to Mockk. There are two Mockk
+benchmarks. The first, `mockk-interface` just mocks an interface. The second, `mockk-static` uses a
+static mock to simulate the worst case scenario for mockk, since static mocks are the most expensive
+mocks to run. The benchmark code generates the tests according to the input parameters and then runs
+the tests, recording the time it takes to generate the tests, compile the tests, and run the tests.
+
+See the README files for each benchmark ([mockingbird](benchmark/mockingbird/README.md),
+[mockk-interface](benchmark/mockk-interface/README.md),
+[mockk-static](benchmark/mockk-static/README.md)) for more information about the performance
+characteristics of each approach.
+
+### Current benchmark runtimes (3 July 2025)
+
+#### Parameters
+- 3 classes to be verified
+- 500 tests
+- Apple M4 Pro
+
+#### Results
+- Mockingbird: 63.7 seconds
+- Mockk (Interface): 68.7 seconds
+- Mockk (Static): 110.4 seconds
