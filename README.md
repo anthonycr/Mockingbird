@@ -101,6 +101,11 @@ static mock to simulate the worst case scenario for mockk, since static mocks ar
 mocks to run. The benchmark code generates the tests according to the input parameters and then runs
 the tests, recording the time it takes to generate the tests, compile the tests, and run the tests.
 
+See the README files for each benchmark ([mockingbird](benchmark/mockingbird/README.md),
+[mockk-interface](benchmark/mockk-interface/README.md),
+[mockk-static](benchmark/mockk-static/README.md)) for more information about the performance
+characteristics of each approach.
+
 ### Current benchmark runtimes (3 July 2025)
 
 #### Parameters

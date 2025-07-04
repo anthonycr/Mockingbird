@@ -1,7 +1,8 @@
 # Mockk Static Mocking
 
 Adjust the parameters in the `:benchmark:mockk-static:executor` `build.gradle.kts` in order to
-see the way the performance changes.
+see the way the performance changes, or set `under_test` and `test_count` to change the number of
+verification classes and tests to generate.
 
 Generally, the performance is bounded both by the number of mocked static classes, with additional
 fixed overhead for each additional mock, and the number of tests. This is because `mockkStatic` has
