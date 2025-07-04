@@ -12,44 +12,47 @@ iterations=10
 ./gradlew :benchmark:mockk-interface:executor:test --dry-run > /dev/null 2>&1
 ./gradlew :benchmark:mockk-static:executor:test --dry-run > /dev/null 2>&1
 
-start_time=$(date +%s%N)
-
+elapsed_ms=0
 for i in $(seq 1 $iterations);
 do
     echo "Run $i / $iterations"
-    ./gradlew :benchmark:mockingbird:executor:test --rerun-tasks > /dev/null 2>&1
+    ./gradlew clean :mockingbird:processor:build > /dev/null 2>&1
+    start_time=$(date +%s%N)
+    ./gradlew :benchmark:mockingbird:executor:test --no-build-cache > /dev/null 2>&1
+    end_time=$(date +%s%N)
+    duration_ns=$((end_time - start_time))
+    duration_ms=$((duration_ns / 1000000))
+    elapsed_ms=$((elapsed_ms+duration_ms))
 done
 
-end_time=$(date +%s%N)
-duration_ns=$((end_time - start_time))
-duration_ms=$((duration_ns / 1000000))
+echo "Mockingbird execution time in ms: $elapsed_ms"
 
-echo "Mockingbird execution time in ms: $duration_ms"
-
-start_time=$(date +%s%N)
-
+elapsed_ms=0
 for i in $(seq 1 $iterations);
 do
     echo "Run $i / $iterations"
-    ./gradlew :benchmark:mockk-interface:executor:test --rerun-tasks > /dev/null 2>&1
+    ./gradlew clean :mockingbird:processor:build > /dev/null 2>&1
+    start_time=$(date +%s%N)
+    ./gradlew :benchmark:mockk-interface:executor:test --no-build-cache > /dev/null 2>&1
+    end_time=$(date +%s%N)
+    duration_ns=$((end_time - start_time))
+    duration_ms=$((duration_ns / 1000000))
+    elapsed_ms=$((elapsed_ms+duration_ms))
 done
 
-end_time=$(date +%s%N)
-duration_ns=$((end_time - start_time))
-duration_ms=$((duration_ns / 1000000))
+echo "Mockk interface execution time in ms: $elapsed_ms"
 
-echo "Mockk interface execution time in ms: $duration_ms"
-
-start_time=$(date +%s%N)
-
+elapsed_ms=0
 for i in $(seq 1 $iterations);
 do
     echo "Run $i / $iterations"
-    ./gradlew :benchmark:mockk-static:executor:test --rerun-tasks > /dev/null 2>&1
+    ./gradlew clean :mockingbird:processor:build > /dev/null 2>&1
+    start_time=$(date +%s%N)
+    ./gradlew :benchmark:mockk-static:executor:test --no-build-cache > /dev/null 2>&1
+    end_time=$(date +%s%N)
+    duration_ns=$((end_time - start_time))
+    duration_ms=$((duration_ns / 1000000))
+    elapsed_ms=$((elapsed_ms+duration_ms))
 done
 
-end_time=$(date +%s%N)
-duration_ns=$((end_time - start_time))
-duration_ms=$((duration_ns / 1000000))
-
-echo "Mockk static execution time in ms: $duration_ms"
+echo "Mockk static execution time in ms: $elapsed_ms"
