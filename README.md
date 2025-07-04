@@ -101,7 +101,7 @@ static mock to simulate the worst case scenario for mockk, since static mocks ar
 mocks to run. The benchmark code generates the tests according to the input parameters and then runs
 the tests, recording the time it takes to generate the tests, compile the tests, and run the tests.
 
-### Current benchmark runtimes
+### Current benchmark runtimes (3 July 2025)
 
 #### Parameters
 - 3 classes to be verified
