@@ -43,7 +43,7 @@ import org.jetbrains.kotlin.ir.declarations.IrExternalPackageFragment
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrPackageFragment
 import org.jetbrains.kotlin.ir.declarations.IrProperty
-import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
@@ -194,290 +194,285 @@ class MockingbirdClassGenerator(
                 if (inheritedFunction.owner.returnType != pluginContext.irBuiltIns.unitType &&
                     inheritedFunction.owner.modality in supportedModalities
                 ) {
-                    generateNonVerifiableFunction(inheritedFunction)
+                    addFunction {
+                        name = inheritedFunction.owner.name
+                        returnType = inheritedFunction.owner.returnType
+                        updateFrom(inheritedFunction.owner)
+                    }.apply {
+                        modality = Modality.FINAL
+                        copyParametersFrom(inheritedFunction.owner)
+                        overriddenSymbols = listOf(inheritedFunction)
+                        body = generateNonVerifiableFunctionBody(this)
+                    }
                 } else {
-                    generateVerifiableFunction(
-                        inheritedFunction,
-                        verificationContextIrProperty,
-                        invocationsIrProperty
-                    )
+                    addFunction {
+                        name = inheritedFunction.owner.name
+                        returnType = pluginContext.irBuiltIns.unitType
+                        updateFrom(inheritedFunction.owner)
+                    }.apply {
+                        modality = Modality.FINAL
+                        overriddenSymbols = listOf(inheritedFunction)
+                        copyParametersFrom(inheritedFunction.owner)
+                        parameters[0].apply {
+                            origin = irClass.origin
+                            type = irClass.thisReceiver!!.type
+                        }
+                        body = generateVerifiableFunction(
+                            function = this,
+                            inheritedFunction = inheritedFunction,
+                            verificationContextIrProperty = verificationContextIrProperty,
+                            invocationsIrProperty = invocationsIrProperty
+                        )
+                    }
                 }
             }
         }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    private fun IrClass.generateNonVerifiableFunction(
-        inheritedFunction: IrSimpleFunctionSymbol
-    ): IrSimpleFunction = addFunction {
-        name = inheritedFunction.owner.name
-        returnType = inheritedFunction.owner.returnType
-        updateFrom(inheritedFunction.owner)
-    }.apply {
-        modality = Modality.FINAL
-        copyParametersFrom(inheritedFunction.owner)
-        overriddenSymbols = listOf(inheritedFunction)
-        body = pluginContext.irBuiltIns.createIrBuilder(symbol).irBlockBody {
-            val checkFunction = pluginContext.referenceFunctions(errorCallableId)
-                .first {
-                    it.owner.parameters.size == 1 &&
-                            it.owner.parameters[0].type == pluginContext.irBuiltIns.anyType
-                }
-            +irReturn(
-                irCall(checkFunction).apply {
-                    arguments[0] = irString("Only functions with return type Unit can be verified")
-                }
-            )
-        }
+    private fun generateNonVerifiableFunctionBody(
+        function: IrFunction,
+    ): IrBody = pluginContext.irBuiltIns.createIrBuilder(function.symbol).irBlockBody {
+        val checkFunction = pluginContext.referenceFunctions(errorCallableId)
+            .first {
+                it.owner.parameters.size == 1 &&
+                        it.owner.parameters[0].type == pluginContext.irBuiltIns.anyType
+            }
+        +irReturn(
+            irCall(checkFunction).apply {
+                arguments[0] = irString("Only functions with return type Unit can be verified")
+            }
+        )
     }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
-    private fun IrClass.generateVerifiableFunction(
+    private fun generateVerifiableFunction(
+        function: IrFunction,
         inheritedFunction: IrSimpleFunctionSymbol,
         verificationContextIrProperty: IrProperty,
         invocationsIrProperty: IrProperty
-    ): IrSimpleFunction {
-        val irClass = this
-        return addFunction {
-            name = inheritedFunction.owner.name
-            returnType = pluginContext.irBuiltIns.unitType
-            updateFrom(inheritedFunction.owner)
-        }.apply {
-            val function = this
-            modality = Modality.FINAL
-            overriddenSymbols = listOf(inheritedFunction)
-            copyParametersFrom(inheritedFunction.owner)
-            parameters[0].apply {
-                origin = irClass.origin
-                type = irClass.thisReceiver!!.type
-            }
-            body = pluginContext.irBuiltIns.createIrBuilder(symbol).irBlockBody {
-                val verificationContextVariable = irTemporary(
-                    nameHint = "verificationContext",
-                    irType = verificationContextIrProperty.getter!!.returnType,
-                    value = irGet(dispatchReceiverParameter!!)
-                        .irCallFunction(verificationContextIrProperty.getter!!)
+    ): IrBody = pluginContext.irBuiltIns.createIrBuilder(function.symbol).irBlockBody {
+        val verificationContextVariable = irTemporary(
+            nameHint = "verificationContext",
+            irType = verificationContextIrProperty.getter!!.returnType,
+            value = irGet(function.dispatchReceiverParameter!!)
+                .irCallFunction(verificationContextIrProperty.getter!!)
+        )
+
+        +irIfThenElse(
+            type = pluginContext.irBuiltIns.unitType,
+            condition = irNotEquals(irGet(verificationContextVariable), irNull()),
+            thenPart = irBlock {
+                val firstOrNullFunction = pluginContext.referenceFunctions(
+                    firstOrNullCallableId
                 )
+                    .first { it.owner.parameters.firstOrNull()!!.type.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.listClass.owner.classIdOrFail }
 
-                +irIfThenElse(
-                    type = pluginContext.irBuiltIns.unitType,
-                    condition = irNotEquals(irGet(verificationContextVariable), irNull()),
-                    thenPart = irBlock {
-                        val firstOrNullFunction = pluginContext.referenceFunctions(
-                            firstOrNullCallableId
+                val invocation = irTemporary(
+                    nameHint = "invocation",
+                    value = irGet(function.dispatchReceiverParameter!!)
+                        .irCallFunction(invocationsIrProperty.getter!!)
+                        .irCallFunction(firstOrNullFunction)
+                )
+                val checkFunction = pluginContext.referenceFunctions(checkCallableId)
+                    .first {
+                        it.owner.parameters.size == 2 &&
+                                it.owner.parameters[0].type == pluginContext.irBuiltIns.booleanType &&
+                                it.owner.parameters[1].type.classOrFail.owner == pluginContext.irBuiltIns.functionN(
+                            0
                         )
-                            .first { it.owner.parameters.firstOrNull()!!.type.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.listClass.owner.classIdOrFail }
+                    }
 
-                        val invocation = irTemporary(
-                            nameHint = "invocation",
-                            value = irGet(dispatchReceiverParameter!!)
-                                .irCallFunction(invocationsIrProperty.getter!!)
-                                .irCallFunction(firstOrNullFunction)
-                        )
-                        val checkFunction = pluginContext.referenceFunctions(checkCallableId)
-                            .first {
-                                it.owner.parameters.size == 2 &&
-                                        it.owner.parameters[0].type == pluginContext.irBuiltIns.booleanType &&
-                                        it.owner.parameters[1].type.classOrFail.owner == pluginContext.irBuiltIns.functionN(
-                                    0
-                                )
-                            }
+                +irCall(checkFunction).apply {
+                    arguments[0] = irNotEquals(irGet(invocation), irNull())
+                    arguments[1] =
+                        function.irLambdaAnyReturn(irString("Expected an invocation, but got none instead"))
+                }
 
-                        +irCall(checkFunction).apply {
-                            arguments[0] = irNotEquals(irGet(invocation), irNull())
-                            arguments[1] =
-                                irLambdaAnyReturn(irString("Expected an invocation, but got none instead"))
-                        }
+                val removeAt = invocationsIrProperty.backingField!!.type.classOrFail
+                    .functions.first { it.owner.name == Name.identifier("removeAt") }
 
-                        val removeAt = invocationsIrProperty.backingField!!.type.classOrFail
-                            .functions.first { it.owner.name == Name.identifier("removeAt") }
+                +irGet(function.dispatchReceiverParameter!!)
+                    .irCallFunction(invocationsIrProperty.getter!!)
+                    .irCallFunction(removeAt, irInt(0))
 
-                        +irGet(dispatchReceiverParameter!!)
-                            .irCallFunction(invocationsIrProperty.getter!!)
-                            .irCallFunction(removeAt, irInt(0))
-
-                        +irCall(checkFunction).apply {
-                            val functionName = irTemporary(
-                                nameHint = "functionName",
-                                value = irCall(
-                                    pluginContext.referenceProperties(
-                                        invocationFunctionNamePropertyCallableId
-                                    ).first().owner.getter!!
-                                ).apply {
-                                    arguments[0] = irGet(invocation)
-                                }
-                            )
-                            arguments[0] = irEquals(
-                                irGet(functionName),
-                                irString(inheritedFunction.owner.fqNameWhenAvailable!!.asString())
-                            )
-                            arguments[1] = irLambdaAnyReturn(
-                                irConcat().apply {
-                                    arguments.add(irString("Expected function call "))
-                                    arguments.add(irString(inheritedFunction.owner.fqNameWhenAvailable!!.asString()))
-                                    arguments.add(irString(", "))
-                                    arguments.add(irGet(functionName))
-                                    arguments.add(irString(" was called instead"))
-                                }
-                            )
-                        }
-
-                        val sizeProperty =
-                            pluginContext.irBuiltIns.listClass.getPropertyGetter("size")
-
-                        val getVerificationContextParameterMatcher =
-                            irGet(verificationContextVariable)
-                                .irCallFunction(
-                                    pluginContext.referenceProperties(
-                                        verificationContextParameterMatcherCallableId
-                                    ).first().owner.getter!!
-                                )
-
-                        val invocationParameters = irGet(invocation)
-                            .irCallFunction(
-                                pluginContext.referenceProperties(
-                                    invocationParametersPropertyCallableId
-                                ).first().owner.getter!!
-                            )
-
-                        val isNotEmpty = pluginContext.referenceFunctions(isNotEmptyCallableId)
-                            .first {
-                                it.owner.parameters.size == 1 && it.owner.parameters[0].type.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.collectionClass.owner.classIdOrFail
-                            }
-                        +irIfThen(
-                            condition = getVerificationContextParameterMatcher
-                                .irCallFunction(isNotEmpty),
-                            thenPart = irCall(checkFunction).apply {
-                                val invocationParametersSize = irTemporary(
-                                    nameHint = "invocationParametersSize",
-                                    value = invocationParameters.irCallFunction(sizeProperty!!)
-                                )
-                                val parameterMatchersSize = irTemporary(
-                                    nameHint = "parameterMatchersSize",
-                                    value = getVerificationContextParameterMatcher
-                                        .irCallFunction(sizeProperty)
-                                )
-                                arguments[0] = irEquals(
-                                    irGet(invocationParametersSize),
-                                    irGet(parameterMatchersSize)
-                                )
-                                arguments[1] = irLambdaAnyReturn(irConcat().apply {
-                                    arguments.add(irString("Expected "))
-                                    arguments.add(irGet(invocationParametersSize))
-                                    arguments.add(irString(" matchers, found "))
-                                    arguments.add(irGet(parameterMatchersSize))
-                                    arguments.add(irString(" instead. When using custom parameter verification, all parameters must use matchers."))
-                                })
-                            }
-                        )
-
-                        val verificationContextCompanion = pluginContext
-                            .referenceClass(verificationContextClassId)!!.owner
-                            .companionObject()!!
-                        val defaultMatcher = verificationContextCompanion
-                            .getPropertyGetter("DEFAULT_MATCHER")
-                        val function2Invoke = pluginContext.irBuiltIns.functionN(2)
-                            .getSimpleFunction("invoke")!!
-                        val getOrNull = pluginContext.referenceFunctions(getOrNullCallableId)
-                            .first {
-                                it.owner.parameters.first().type.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.listClass.owner.classIdOrFail
-                            }
-
-                        // Drop the receiver parameter
-                        function.symbol.owner.parameters.drop(1)
-                            .forEachIndexed { index, parameter ->
-                                val matcherOrNull = irTemporary(
-                                    nameHint = "nullableMatcher",
-                                    value = getVerificationContextParameterMatcher
-                                        .irCallFunction(getOrNull, irInt(index))
-                                )
-                                val nonNullMatcher = irIfNull(
-                                    type = matcherOrNull.type,
-                                    subject = irGet(matcherOrNull),
-                                    thenPart = irGetObject(verificationContextCompanion.symbol)
-                                        .irCallFunction(defaultMatcher!!),
-                                    elsePart = irGet(matcherOrNull)
-                                )
-                                +irCall(checkFunction).apply {
-                                    val listGet =
-                                        pluginContext.irBuiltIns.listClass.getSimpleFunction(
-                                            "get"
-                                        )!!
-                                    val invokedParameter = irTemporary(
-                                        nameHint = "invokedParameter",
-                                        value = irCall(listGet).apply {
-                                            arguments[0] = invocationParameters
-                                            arguments[1] = irInt(index)
-                                        }
-                                    )
-                                    arguments[0] = nonNullMatcher.irCallFunction(
-                                        function2Invoke,
-                                        irGet(parameter),
-                                        irGet(invokedParameter)
-                                    )
-                                    arguments[1] =
-                                        irLambdaAnyReturn(irConcat().apply {
-                                            arguments.add(irString("Expected argument "))
-                                            arguments.add(irGet(parameter))
-                                            arguments.add(irString(", found "))
-                                            arguments.add(irGet(invokedParameter))
-                                            arguments.add(irString(" instead."))
-                                        })
-                                }
-                            }
-
-                        +irCall(
+                +irCall(checkFunction).apply {
+                    val functionName = irTemporary(
+                        nameHint = "functionName",
+                        value = irCall(
                             pluginContext.referenceProperties(
-                                verificationContextParameterMatcherCallableId
-                            ).first().owner.setter!!
+                                invocationFunctionNamePropertyCallableId
+                            ).first().owner.getter!!
                         ).apply {
-                            arguments[0] = irGet(verificationContextVariable)
-                            arguments[1] = irCall(
-                                pluginContext.referenceFunctions(emptyListOfCallableId)
-                                    .first {
-                                        it.owner.returnType.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.listClass.owner.classIdOrFail
-                                    }
-                            )
+                            arguments[0] = irGet(invocation)
                         }
-                    },
-                    elsePart = irBlock {
-                        val listAdd = pluginContext.irBuiltIns.mutableListClass.functions.first {
-                            it.owner.name == Name.identifier("add") && it.owner.parameters.size == 2
+                    )
+                    arguments[0] = irEquals(
+                        irGet(functionName),
+                        irString(inheritedFunction.owner.fqNameWhenAvailable!!.asString())
+                    )
+                    arguments[1] = function.irLambdaAnyReturn(
+                        irConcat().apply {
+                            arguments.add(irString("Expected function call "))
+                            arguments.add(irString(inheritedFunction.owner.fqNameWhenAvailable!!.asString()))
+                            arguments.add(irString(", "))
+                            arguments.add(irGet(functionName))
+                            arguments.add(irString(" was called instead"))
                         }
-                        val invocationClass = pluginContext
-                            .referenceClass(invocationClassId)!!.owner
-                        val invocationClassConstructor = invocationClass.primaryConstructor!!.symbol
-                        +irGet(dispatchReceiverParameter!!)
-                            .irCallFunction(invocationsIrProperty.getter!!)
-                            .irCallFunction(
-                                listAdd,
-                                irCallConstructor(
-                                    invocationClassConstructor,
-                                    emptyList()
-                                ).apply {
-                                    arguments[0] =
-                                        irString(inheritedFunction.owner.fqNameWhenAvailable!!.asString())
+                    )
+                }
 
-                                    val listOf = pluginContext.referenceFunctions(listOfCallableId)
-                                        .first {
-                                            it.owner.parameters.size == 1 &&
-                                                    it.owner.parameters[0].isVararg &&
-                                                    it.owner.returnType.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.listClass.owner.classIdOrFail
-                                        }
-                                    arguments[1] = irCall(listOf).apply {
-                                        arguments[0] = irVararg(
-                                            elementType = pluginContext.irBuiltIns.anyType,
-                                            // Drop the receiver parameter
-                                            values = function.symbol.owner.parameters.drop(1)
-                                                .map { irGet(it) }
-                                        )
-                                    }
-                                }
-                            )
+                val sizeProperty = pluginContext.irBuiltIns.listClass.getPropertyGetter("size")
+
+                val getVerificationContextParameterMatcher = irGet(verificationContextVariable)
+                    .irCallFunction(
+                        pluginContext.referenceProperties(
+                            verificationContextParameterMatcherCallableId
+                        ).first().owner.getter!!
+                    )
+
+                val invocationParameters = irGet(invocation)
+                    .irCallFunction(
+                        pluginContext.referenceProperties(
+                            invocationParametersPropertyCallableId
+                        ).first().owner.getter!!
+                    )
+
+                val isNotEmpty = pluginContext.referenceFunctions(isNotEmptyCallableId)
+                    .first {
+                        it.owner.parameters.size == 1 && it.owner.parameters[0].type.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.collectionClass.owner.classIdOrFail
+                    }
+                +irIfThen(
+                    condition = getVerificationContextParameterMatcher
+                        .irCallFunction(isNotEmpty),
+                    thenPart = irCall(checkFunction).apply {
+                        val invocationParametersSize = irTemporary(
+                            nameHint = "invocationParametersSize",
+                            value = invocationParameters.irCallFunction(sizeProperty!!)
+                        )
+                        val parameterMatchersSize = irTemporary(
+                            nameHint = "parameterMatchersSize",
+                            value = getVerificationContextParameterMatcher
+                                .irCallFunction(sizeProperty)
+                        )
+                        arguments[0] = irEquals(
+                            irGet(invocationParametersSize),
+                            irGet(parameterMatchersSize)
+                        )
+                        arguments[1] = function.irLambdaAnyReturn(irConcat().apply {
+                            arguments.add(irString("Expected "))
+                            arguments.add(irGet(invocationParametersSize))
+                            arguments.add(irString(" matchers, found "))
+                            arguments.add(irGet(parameterMatchersSize))
+                            arguments.add(irString(" instead. When using custom parameter verification, all parameters must use matchers."))
+                        })
                     }
                 )
-                +irReturnUnit()
+
+                val verificationContextCompanion = pluginContext
+                    .referenceClass(verificationContextClassId)!!.owner
+                    .companionObject()!!
+                val defaultMatcher = verificationContextCompanion
+                    .getPropertyGetter("DEFAULT_MATCHER")
+                val function2Invoke = pluginContext.irBuiltIns.functionN(2)
+                    .getSimpleFunction("invoke")!!
+                val getOrNull = pluginContext.referenceFunctions(getOrNullCallableId)
+                    .first {
+                        it.owner.parameters.first().type.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.listClass.owner.classIdOrFail
+                    }
+
+                // Drop the receiver parameter
+                function.symbol.owner.parameters.drop(1)
+                    .forEachIndexed { index, parameter ->
+                        val matcherOrNull = irTemporary(
+                            nameHint = "nullableMatcher",
+                            value = getVerificationContextParameterMatcher
+                                .irCallFunction(getOrNull, irInt(index))
+                        )
+                        val nonNullMatcher = irIfNull(
+                            type = matcherOrNull.type,
+                            subject = irGet(matcherOrNull),
+                            thenPart = irGetObject(verificationContextCompanion.symbol)
+                                .irCallFunction(defaultMatcher!!),
+                            elsePart = irGet(matcherOrNull)
+                        )
+                        +irCall(checkFunction).apply {
+                            val listGet = pluginContext.irBuiltIns.listClass.getSimpleFunction(
+                                "get"
+                            )!!
+                            val invokedParameter = irTemporary(
+                                nameHint = "invokedParameter",
+                                value = irCall(listGet).apply {
+                                    arguments[0] = invocationParameters
+                                    arguments[1] = irInt(index)
+                                }
+                            )
+                            arguments[0] = nonNullMatcher.irCallFunction(
+                                function2Invoke,
+                                irGet(parameter),
+                                irGet(invokedParameter)
+                            )
+                            arguments[1] =
+                                function.irLambdaAnyReturn(irConcat().apply {
+                                    arguments.add(irString("Expected argument "))
+                                    arguments.add(irGet(parameter))
+                                    arguments.add(irString(", found "))
+                                    arguments.add(irGet(invokedParameter))
+                                    arguments.add(irString(" instead."))
+                                })
+                        }
+                    }
+
+                +irCall(
+                    pluginContext.referenceProperties(
+                        verificationContextParameterMatcherCallableId
+                    ).first().owner.setter!!
+                ).apply {
+                    arguments[0] = irGet(verificationContextVariable)
+                    arguments[1] = irCall(
+                        pluginContext.referenceFunctions(emptyListOfCallableId)
+                            .first {
+                                it.owner.returnType.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.listClass.owner.classIdOrFail
+                            }
+                    )
+                }
+            },
+            elsePart = irBlock {
+                val listAdd = pluginContext.irBuiltIns.mutableListClass.functions.first {
+                    it.owner.name == Name.identifier("add") && it.owner.parameters.size == 2
+                }
+                val invocationClass = pluginContext
+                    .referenceClass(invocationClassId)!!.owner
+                val invocationClassConstructor = invocationClass.primaryConstructor!!.symbol
+                +irGet(function.dispatchReceiverParameter!!)
+                    .irCallFunction(invocationsIrProperty.getter!!)
+                    .irCallFunction(
+                        listAdd,
+                        irCallConstructor(
+                            invocationClassConstructor,
+                            emptyList()
+                        ).apply {
+                            arguments[0] =
+                                irString(inheritedFunction.owner.fqNameWhenAvailable!!.asString())
+
+                            val listOf = pluginContext.referenceFunctions(listOfCallableId)
+                                .first {
+                                    it.owner.parameters.size == 1 &&
+                                            it.owner.parameters[0].isVararg &&
+                                            it.owner.returnType.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.listClass.owner.classIdOrFail
+                                }
+                            arguments[1] = irCall(listOf).apply {
+                                arguments[0] = irVararg(
+                                    elementType = pluginContext.irBuiltIns.anyType,
+                                    // Drop the receiver parameter
+                                    values = function.symbol.owner.parameters.drop(1)
+                                        .map { irGet(it) }
+                                )
+                            }
+                        }
+                    )
             }
-        }
+        )
+        +irReturnUnit()
     }
 
     private fun IrFunction.irLambdaAnyReturn(value: IrExpression): IrFunctionExpressionImpl {
