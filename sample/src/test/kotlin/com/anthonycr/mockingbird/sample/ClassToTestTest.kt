@@ -52,16 +52,18 @@ class ClassToTestTest {
         }
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun `act1 expected failure`() {
-        val classToTest = createClassToTest()
+        assertThrows<IllegalStateException>("Expected argument 2, found 1 instead.") {
+            val classToTest = createClassToTest()
 
-        classToTest.act1()
+            classToTest.act1()
 
-        verify(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2) {
-            lambdaToVerify1("test")
-            // The first invocation has 1 as its parameter
-            interfaceToVerify1.performAction1(2)
+            verify(lambdaToVerify1, lambdaToVerify2, interfaceToVerify1, interfaceToVerify2) {
+                lambdaToVerify1("test")
+                // The first invocation has 1 as its parameter
+                interfaceToVerify1.performAction1(2)
+            }
         }
     }
 
@@ -79,15 +81,17 @@ class ClassToTestTest {
         }
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun `act2 expected failure`() {
-        val classToTest = createClassToTest()
+        assertThrows<IllegalStateException>("Expected function call com.anthonycr.mockingbird.sample.InterfaceToVerify1.performAction1, com.anthonycr.mockingbird.sample.InterfaceToVerify1.performAction2 was called instead") {
+            val classToTest = createClassToTest()
 
-        classToTest.act2()
+            classToTest.act2()
 
-        verify(interfaceToVerify1, interfaceToVerify2) {
-            // performAction2 was invoked first
-            interfaceToVerify1.performAction1(1)
+            verify(interfaceToVerify1, interfaceToVerify2) {
+                // performAction2 was invoked first
+                interfaceToVerify1.performAction1(1)
+            }
         }
     }
 
@@ -105,16 +109,18 @@ class ClassToTestTest {
         }
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun `act3  expected failure`() {
-        val classToTest = createClassToTest()
+        assertThrows<IllegalStateException>("Expected an invocation, but got none instead") {
+            val classToTest = createClassToTest()
 
-        classToTest.act3()
+            classToTest.act3()
 
-        verify(interfaceToVerify1, interfaceToVerify2) {
-            // Only invoked 2 times
-            repeat(3) {
-                interfaceToVerify1.performAction1(1)
+            verify(interfaceToVerify1, interfaceToVerify2) {
+                // Only invoked 2 times
+                repeat(3) {
+                    interfaceToVerify1.performAction1(1)
+                }
             }
         }
     }
@@ -130,26 +136,30 @@ class ClassToTestTest {
         interfaceToVerify2.verifyComplete()
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun `act3 expected failure`() {
-        val classToTest = createClassToTest()
+        assertThrows<IllegalStateException>("Expected no invocations, but found 2 unverified") {
+            val classToTest = createClassToTest()
 
-        classToTest.act3()
+            classToTest.act3()
 
-        // act3 function call actually has invocations
-        interfaceToVerify1.verifyComplete()
+            // act3 function call actually has invocations
+            interfaceToVerify1.verifyComplete()
+        }
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun `act3 expected failure unverified`() {
-        val classToTest = createClassToTest()
+        assertThrows<IllegalStateException>("Found 1 unverified invocations") {
+            val classToTest = createClassToTest()
 
-        classToTest.act3()
+            classToTest.act3()
 
-        verify(interfaceToVerify1, interfaceToVerify2) {
-            interfaceToVerify1.performAction1(1)
-            interfaceToVerify1.performAction1(1)
-            interfaceToVerify2.performAction1(1, "two", "three")
+            verify(interfaceToVerify1, interfaceToVerify2) {
+                interfaceToVerify1.performAction1(1)
+                interfaceToVerify1.performAction1(1)
+                interfaceToVerify2.performAction1(1, "two", "three")
+            }
         }
     }
 
@@ -166,38 +176,44 @@ class ClassToTestTest {
         }
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun `double verify expected failure`() {
-        val classToTest = createClassToTest()
+        assertThrows<IllegalStateException>("Do not call verify within another verify block") {
+            val classToTest = createClassToTest()
 
-        classToTest.act3()
+            classToTest.act3()
 
-        verify(interfaceToVerify1) {
             verify(interfaceToVerify1) {
-                // Won't get here
+                verify(interfaceToVerify1) {
+                    // Won't get here
+                }
             }
         }
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun `verifyNoInvocations within verify expected failure`() {
-        val classToTest = createClassToTest()
+        assertThrows<IllegalStateException>("Do not call verifyComplete from within a verify block") {
+            val classToTest = createClassToTest()
 
-        classToTest.act3()
+            classToTest.act3()
 
-        verify(interfaceToVerify1) {
-            interfaceToVerify1.verifyComplete()
+            verify(interfaceToVerify1) {
+                interfaceToVerify1.verifyComplete()
+            }
         }
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun `verification of inequitable type expected failure`() {
-        val classToTest = createClassToTest()
+        assertThrows<IllegalStateException>("Expected argument java.lang.Exception: test, found java.lang.Exception: test instead.") {
+            val classToTest = createClassToTest()
 
-        classToTest.act5()
+            classToTest.act5()
 
-        verify(interfaceToVerify1) {
-            interfaceToVerify1.performAction3(Exception("test"))
+            verify(interfaceToVerify1) {
+                interfaceToVerify1.performAction3(Exception("test"))
+            }
         }
     }
 
@@ -212,14 +228,16 @@ class ClassToTestTest {
         }
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun `verification of inequitable type with parameter verification expected failure`() {
-        val classToTest = createClassToTest()
+        assertThrows<IllegalStateException>("Expected argument java.lang.Exception: test1, found java.lang.Exception: test instead.") {
+            val classToTest = createClassToTest()
 
-        classToTest.act5()
+            classToTest.act5()
 
-        verify(interfaceToVerify1) {
-            interfaceToVerify1.performAction3(sameAs(Exception("test1")) { a -> a.message == "test1" })
+            verify(interfaceToVerify1) {
+                interfaceToVerify1.performAction3(sameAs(Exception("test1")) { a -> a.message == "test1" })
+            }
         }
     }
 
@@ -238,26 +256,30 @@ class ClassToTestTest {
         }
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun `verification of multiple types with parameter verification expected failure`() {
-        val classToTest = createClassToTest()
+        assertThrows<IllegalStateException>("Expected 3 matchers, found 1 instead. When using custom parameter verification, all parameters must use matchers.") {
+            val classToTest = createClassToTest()
 
-        classToTest.act6()
+            classToTest.act6()
 
-        verify(interfaceToVerify1) {
-            interfaceToVerify1.performAction4(
-                one = "one",
-                two = 1,
-                exception = sameAs(Exception("test")) { a -> a.message == "test" }
-            )
+            verify(interfaceToVerify1) {
+                interfaceToVerify1.performAction4(
+                    one = "one",
+                    two = 1,
+                    exception = sameAs(Exception("test")) { a -> a.message == "test" }
+                )
+            }
         }
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun `verification of non Unit returns is not allowed`() {
-        val classToTest = createClassToTest()
+        assertThrows<IllegalStateException>("Only functions with return type Unit can be verified") {
+            val classToTest = createClassToTest()
 
-        classToTest.act7()
+            classToTest.act7()
+        }
     }
 
     @Test
@@ -282,11 +304,15 @@ class ClassToTestTest {
         }
     }
 
-    @Test(expected = IllegalStateException::class)
-    fun `verification of non Unit returns suspending function is not allowed`() = runTest {
-        val classToTest = createClassToTest()
+    @Test
+    fun `verification of non Unit returns suspending function is not allowed`() {
+        assertThrows<IllegalStateException>("Only functions with return type Unit can be verified") {
+            runTest {
+                val classToTest = createClassToTest()
 
-        classToTest.act9()
+                classToTest.act9()
+            }
+        }
     }
 
     @Test
@@ -309,6 +335,21 @@ class ClassToTestTest {
         verify(classToVerify2) {
             classToVerify2.act1("one")
             classToVerify2.act1("two")
+        }
+    }
+
+    inline fun <reified T : Throwable> assertThrows(message: String, block: () -> Unit) {
+        try {
+            block()
+            error("Excepted exception to be thrown, but none was")
+        } catch (t: Throwable) {
+            if (t is T) {
+                require(t.message == message) {
+                    "Exception message mismatch\n\tExpected: $message\n\tActual: ${t.message}"
+                }
+            } else {
+                error("Expected exception of type ${T::class.java.simpleName}, ${t::class.java.simpleName} was thrown instead")
+            }
         }
     }
 }
