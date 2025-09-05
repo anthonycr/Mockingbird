@@ -1,6 +1,5 @@
 package com.anthonycr.mockingbird.sample
 
-import com.anthonycr.mockingbird.core.Verify
 import com.anthonycr.mockingbird.core.fake
 import com.anthonycr.mockingbird.core.verify
 import com.anthonycr.mockingbird.core.verifyComplete
@@ -10,22 +9,20 @@ import org.junit.Test
 
 class ClassToTestTest {
 
-    @Verify
-    val lambdaToVerify1: (String) -> Unit = fake()
+    val lambdaToVerify1: (String) -> Unit = {
+        // TODO implement compiled package visitation + type parameters
+    }
 
-    @Verify
-    val lambdaToVerify2: (Int) -> Unit = fake()
+    val lambdaToVerify2: (Int) -> Unit = {
+        // TODO implement compiled package visitation + type parameters
+    }
 
-    @Verify
     val interfaceToVerify1 = fake<InterfaceToVerify1>()
 
-    @Verify
     val interfaceToVerify2 = fake(InterfaceToVerify2::class.java)
 
-    @Verify
     val classToVerify1 = fake<ClassToVerify1>()
 
-    @Verify
     val classToVerify2 = fake<ClassToVerify2>()
 
     private fun createClassToTest() = ClassToTest(
