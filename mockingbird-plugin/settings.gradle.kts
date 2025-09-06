@@ -19,22 +19,16 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
     }
+    versionCatalogs {
+        create("libs") {
+            from(files("../gradle/libs.versions.toml"))
+        }
+    }
 }
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-rootProject.name = "Mockingbird"
-include(":mockingbird:core")
-include(":mockingbird:internal")
-include(":mockingbird:processor")
-include(":sample")
-include(":benchmark:mockk-static:generator")
-include(":benchmark:mockk-static:executor")
-include(":benchmark:mockingbird:executor")
-include(":benchmark:mockingbird:generator")
-include(":benchmark:mockk-interface:executor")
-include(":benchmark:mockk-interface:generator")
-include(":mockingbird:compiler")
-includeBuild("mockingbird-plugin")
+rootProject.name = "mockingbird-plugin"
+include(":plugin")

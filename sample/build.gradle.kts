@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm")
-    alias(libs.plugins.ksp.plugin)
+    id("com.anthonycr.mockingbird.gradle-plugin")
+    // alias(libs.plugins.ksp.plugin)
 }
 
 kotlin {
@@ -11,5 +12,5 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.coroutines.test)
     testImplementation(project(":mockingbird:core"))
-    kspTest(project(":mockingbird:processor"))
+    // kspTest(project(":mockingbird:processor"))
 }

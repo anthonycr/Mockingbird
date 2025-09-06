@@ -8,6 +8,7 @@ jvm = "17"
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ksp-api = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
+kotlin-compiler = { group = "org.jetbrains.kotlin", name = "kotlin-compiler", version.ref = "jetbrainsKotlin" }
 kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }
 kotlinpoet-ksp = { group = "com.squareup", name = "kotlinpoet-ksp", version.ref = "kotlinpoet" }
 compiletesting = { group = "dev.zacsweers.kctfork", name = "ksp", version = "0.8.0" }
