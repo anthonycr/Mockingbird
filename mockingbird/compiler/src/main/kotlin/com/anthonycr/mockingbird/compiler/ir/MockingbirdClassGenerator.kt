@@ -1,16 +1,13 @@
 package com.anthonycr.mockingbird.compiler.ir
 
 import com.anthonycr.mockingbird.compiler.utils.debug
-import com.anthonycr.mockingbird.compiler.utils.name
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irIfThen
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
-import org.jetbrains.kotlin.ir.builders.IrBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addBackingField
 import org.jetbrains.kotlin.ir.builders.declarations.addDefaultGetter
 import org.jetbrains.kotlin.ir.builders.declarations.addDefaultSetter
@@ -45,20 +42,16 @@ import org.jetbrains.kotlin.ir.declarations.IrPackageFragment
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
-import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
-import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.createType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.addChild
 import org.jetbrains.kotlin.ir.util.addSimpleDelegatingConstructor
-import org.jetbrains.kotlin.ir.util.classIdOrFail
 import org.jetbrains.kotlin.ir.util.companionObject
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.copyParametersFrom
@@ -68,11 +61,8 @@ import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.getPropertyGetter
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
-import org.jetbrains.kotlin.ir.util.isVararg
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
-import org.jetbrains.kotlin.name.CallableId
-import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
@@ -82,9 +72,16 @@ class MockingbirdClassGenerator(
     val typesToGenerate: Map<FqName, IrType>
 ) : IrElementTransformerVoid() {
 
+    private val irBuiltIns = pluginContext.irBuiltIns
+    private val verifiable = Verifiable(pluginContext)
+    private val invocation = Verifiable.Invocation(pluginContext)
+    private val kotlin = KotlinFunctions(pluginContext)
+
     val classes = mutableListOf<IrClass>()
 
-    override fun visitExternalPackageFragment(declaration: IrExternalPackageFragment): IrExternalPackageFragment {
+    override fun visitExternalPackageFragment(
+        declaration: IrExternalPackageFragment
+    ): IrExternalPackageFragment {
         messageCollector.debug("Visiting ${declaration.packageFqName.asString()}")
         return super.visitExternalPackageFragment(declaration)
     }
@@ -98,14 +95,6 @@ class MockingbirdClassGenerator(
         }
         typesToGenerate.filter { it.key.asString().contains(normalizedPackageName) }
             .forEach { (inheritedFqName, inheritedIrType) ->
-                if (inheritedIrType !is IrSimpleType) {
-                    messageCollector.report(
-                        CompilerMessageSeverity.ERROR,
-                        "$inheritedFqName is not an IrSimpleType"
-                    )
-                    return super.visitPackageFragment(declaration)
-                }
-
                 messageCollector.debug("Generating fake for $inheritedFqName")
 
                 val irClass = generateFake(inheritedIrType)
@@ -121,7 +110,7 @@ class MockingbirdClassGenerator(
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     private fun generateFake(inheritedIrType: IrType): IrClass =
         pluginContext.irFactory.buildClass {
-            name = Name.identifier("${inheritedIrType.name()}_Fakes")
+            name = Name.identifier("${inheritedIrType.classOrFail.owner.name}_Fakes")
             kind = ClassKind.CLASS
         }.apply {
             val irClass = this
@@ -129,69 +118,58 @@ class MockingbirdClassGenerator(
             // if (inheritedIrType.classOrFail.owner.typeParameters.isNotEmpty()) {
             //     typeParameters =inheritedIrType.classOrFail.owner.typeParameters
             // }
-            val verifiableIrType = pluginContext.referenceClass(verifiableClassId)!!
-                .createType(false, emptyList())
+            val verifiableIrType = verifiable.symbol.createType(false, emptyList())
             superTypes = listOf(inheritedIrType, verifiableIrType)
             createThisReceiverParameter()
 
             // Look for super constructor or use default any constructor if we are implementing an interface
             val constructorOfAny = inheritedIrType.classOrFail.constructors.firstOrNull()?.owner
-                ?: pluginContext.irBuiltIns.anyClass.owner.constructors.first()
+                ?: irBuiltIns.anyClass.owner.constructors.first()
             addSimpleDelegatingConstructor(
                 superConstructor = constructorOfAny,
-                irBuiltIns = pluginContext.irBuiltIns,
+                irBuiltIns = irBuiltIns,
                 isPrimary = true
             )
 
-            val invocationsPropertySymbol = pluginContext.referenceProperties(
-                verifiableInvocationsPropertyCallableId
-            ).first()
             val invocationsIrProperty = addProperty {
-                name = verifiableInvocationsPropertyCallableId.callableName
-                updateFrom(invocationsPropertySymbol.owner)
+                name = verifiable.invocations.callableId.callableName
+                updateFrom(verifiable.invocations.symbol.owner)
             }.apply {
-                overriddenSymbols = listOf(invocationsPropertySymbol)
+                overriddenSymbols = listOf(verifiable.invocations.symbol)
                 addBackingField {
-                    type = invocationsPropertySymbol.owner.getter!!.returnType
+                    type = verifiable.invocations.getter.returnType
                 }.apply {
-                    val mutableListFunction =
-                        pluginContext.referenceFunctions(mutableListOfCallableId).first()
-                    initializer = with(pluginContext.irBuiltIns.createIrBuilder(symbol)) {
-                        irExprBody(irCall(mutableListFunction))
+                    initializer = with(irBuiltIns.createIrBuilder(symbol)) {
+                        irExprBody(irCall(kotlin.mutableListOf.symbol))
                     }
                 }
-                addDefaultGetter(irClass, pluginContext.irBuiltIns)
-                getter!!.overriddenSymbols = listOf(invocationsPropertySymbol.owner.getter!!.symbol)
+                addDefaultGetter(irClass, irBuiltIns)
+                getter!!.overriddenSymbols = listOf(verifiable.invocations.getter.symbol)
             }
 
-            val verificationContextPropertySymbol = pluginContext.referenceProperties(
-                verifiableVerificationContextCallableId
-            ).first()
             val verificationContextIrProperty = addProperty {
-                name = verifiableVerificationContextCallableId.callableName
-                updateFrom(verificationContextPropertySymbol.owner)
+                name = verifiable.verificationContext.callableId.callableName
+                updateFrom(verifiable.verificationContext.symbol.owner)
             }.apply {
-                overriddenSymbols = listOf(verificationContextPropertySymbol)
+                overriddenSymbols = listOf(verifiable.verificationContext.symbol)
                 addBackingField {
-                    type = verificationContextPropertySymbol.owner.getter!!.returnType
+                    type = verifiable.verificationContext.getter.returnType
                 }.apply {
-                    initializer = with(pluginContext.irBuiltIns.createIrBuilder(symbol)) {
+                    initializer = with(irBuiltIns.createIrBuilder(symbol)) {
                         irExprBody(irNull())
                     }
                 }
-                addDefaultGetter(irClass, pluginContext.irBuiltIns)
-                addDefaultSetter(irClass, pluginContext.irBuiltIns)
-                getter!!.overriddenSymbols =
-                    listOf(verificationContextPropertySymbol.owner.getter!!.symbol)
-                setter!!.overriddenSymbols =
-                    listOf(verificationContextPropertySymbol.owner.setter!!.symbol)
+                addDefaultGetter(irClass, irBuiltIns)
+                addDefaultSetter(irClass, irBuiltIns)
+                getter!!.overriddenSymbols = listOf(verifiable.verificationContext.getter.symbol)
+                setter!!.overriddenSymbols = listOf(verifiable.verificationContext.setter.symbol)
             }
 
             val supportedModalities = listOf(Modality.ABSTRACT, Modality.OPEN)
             inheritedIrType.classOrFail.functions.filter {
                 it.owner.modality in supportedModalities
             }.forEach { inheritedFunction ->
-                if (inheritedFunction.owner.returnType != pluginContext.irBuiltIns.unitType &&
+                if (inheritedFunction.owner.returnType != irBuiltIns.unitType &&
                     inheritedFunction.owner.modality in supportedModalities
                 ) {
                     addFunction {
@@ -207,7 +185,7 @@ class MockingbirdClassGenerator(
                 } else {
                     addFunction {
                         name = inheritedFunction.owner.name
-                        returnType = pluginContext.irBuiltIns.unitType
+                        returnType = irBuiltIns.unitType
                         updateFrom(inheritedFunction.owner)
                     }.apply {
                         modality = Modality.FINAL
@@ -230,15 +208,10 @@ class MockingbirdClassGenerator(
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     private fun generateNonVerifiableFunctionBody(
-        function: IrFunction,
-    ): IrBody = pluginContext.irBuiltIns.createIrBuilder(function.symbol).irBlockBody {
-        val checkFunction = pluginContext.referenceFunctions(errorCallableId)
-            .first {
-                it.owner.parameters.size == 1 &&
-                        it.owner.parameters[0].type == pluginContext.irBuiltIns.anyType
-            }
+        function: IrFunction
+    ): IrBody = irBuiltIns.createIrBuilder(function.symbol).irBlockBody {
         +irReturn(
-            irCall(checkFunction).apply {
+            irCall(kotlin.error.symbol).apply {
                 arguments[0] = irString("Only functions with return type Unit can be verified")
             }
         )
@@ -250,61 +223,42 @@ class MockingbirdClassGenerator(
         inheritedFunction: IrSimpleFunctionSymbol,
         verificationContextIrProperty: IrProperty,
         invocationsIrProperty: IrProperty
-    ): IrBody = pluginContext.irBuiltIns.createIrBuilder(function.symbol).irBlockBody {
+    ): IrBody = irBuiltIns.createIrBuilder(function.symbol).irBlockBody {
         val verificationContextVariable = irTemporary(
             nameHint = "verificationContext",
-            irType = verificationContextIrProperty.getter!!.returnType,
             value = irGet(function.dispatchReceiverParameter!!)
                 .irCallFunction(verificationContextIrProperty.getter!!)
         )
 
+        val verificationContext = VerificationContext(pluginContext)
+        val mutableList = MutableListFunctions(pluginContext)
+
         +irIfThenElse(
-            type = pluginContext.irBuiltIns.unitType,
+            type = irBuiltIns.unitType,
             condition = irNotEquals(irGet(verificationContextVariable), irNull()),
             thenPart = irBlock {
-                val firstOrNullFunction = pluginContext.referenceFunctions(
-                    firstOrNullCallableId
-                )
-                    .first { it.owner.parameters.firstOrNull()!!.type.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.listClass.owner.classIdOrFail }
-
-                val invocation = irTemporary(
+                val invocationVariable = irTemporary(
                     nameHint = "invocation",
                     value = irGet(function.dispatchReceiverParameter!!)
                         .irCallFunction(invocationsIrProperty.getter!!)
-                        .irCallFunction(firstOrNullFunction)
+                        .irCallFunction(kotlin.firstOrNull.symbol)
                 )
-                val checkFunction = pluginContext.referenceFunctions(checkCallableId)
-                    .first {
-                        it.owner.parameters.size == 2 &&
-                                it.owner.parameters[0].type == pluginContext.irBuiltIns.booleanType &&
-                                it.owner.parameters[1].type.classOrFail.owner == pluginContext.irBuiltIns.functionN(
-                            0
-                        )
-                    }
 
-                +irCall(checkFunction).apply {
-                    arguments[0] = irNotEquals(irGet(invocation), irNull())
-                    arguments[1] =
-                        function.irLambdaAnyReturn(irString("Expected an invocation, but got none instead"))
+                +irCall(kotlin.check.symbol).apply {
+                    arguments[0] = irNotEquals(irGet(invocationVariable), irNull())
+                    arguments[1] = function.irLambdaAnyReturn(
+                        irString("Expected an invocation, but got none instead")
+                    )
                 }
-
-                val removeAt = invocationsIrProperty.backingField!!.type.classOrFail
-                    .functions.first { it.owner.name == Name.identifier("removeAt") }
 
                 +irGet(function.dispatchReceiverParameter!!)
                     .irCallFunction(invocationsIrProperty.getter!!)
-                    .irCallFunction(removeAt, irInt(0))
+                    .irCallFunction(mutableList.removeAt.symbol, irInt(0))
 
-                +irCall(checkFunction).apply {
+                +irCall(kotlin.check.symbol).apply {
                     val functionName = irTemporary(
                         nameHint = "functionName",
-                        value = irCall(
-                            pluginContext.referenceProperties(
-                                invocationFunctionNamePropertyCallableId
-                            ).first().owner.getter!!
-                        ).apply {
-                            arguments[0] = irGet(invocation)
-                        }
+                        value = irGet(invocationVariable).irCallFunction(invocation.functionName.getter)
                     )
                     arguments[0] = irEquals(
                         irGet(functionName),
@@ -321,30 +275,18 @@ class MockingbirdClassGenerator(
                     )
                 }
 
-                val sizeProperty = pluginContext.irBuiltIns.listClass.getPropertyGetter("size")
+                val sizeProperty = irBuiltIns.listClass.getPropertyGetter("size")
 
                 val getVerificationContextParameterMatcher = irGet(verificationContextVariable)
-                    .irCallFunction(
-                        pluginContext.referenceProperties(
-                            verificationContextParameterMatcherCallableId
-                        ).first().owner.getter!!
-                    )
+                    .irCallFunction(verificationContext.parameterMatcher.getter)
 
-                val invocationParameters = irGet(invocation)
-                    .irCallFunction(
-                        pluginContext.referenceProperties(
-                            invocationParametersPropertyCallableId
-                        ).first().owner.getter!!
-                    )
+                val invocationParameters = irGet(invocationVariable)
+                    .irCallFunction(invocation.parameters.getter)
 
-                val isNotEmpty = pluginContext.referenceFunctions(isNotEmptyCallableId)
-                    .first {
-                        it.owner.parameters.size == 1 && it.owner.parameters[0].type.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.collectionClass.owner.classIdOrFail
-                    }
                 +irIfThen(
                     condition = getVerificationContextParameterMatcher
-                        .irCallFunction(isNotEmpty),
-                    thenPart = irCall(checkFunction).apply {
+                        .irCallFunction(kotlin.isNotEmpty.symbol),
+                    thenPart = irCall(kotlin.check.symbol).apply {
                         val invocationParametersSize = irTemporary(
                             nameHint = "invocationParametersSize",
                             value = invocationParameters.irCallFunction(sizeProperty!!)
@@ -368,17 +310,12 @@ class MockingbirdClassGenerator(
                     }
                 )
 
-                val verificationContextCompanion = pluginContext
-                    .referenceClass(verificationContextClassId)!!.owner
+                val verificationContextCompanion = verificationContext.symbol.owner
                     .companionObject()!!
                 val defaultMatcher = verificationContextCompanion
                     .getPropertyGetter("DEFAULT_MATCHER")
-                val function2Invoke = pluginContext.irBuiltIns.functionN(2)
+                val function2Invoke = irBuiltIns.functionN(2)
                     .getSimpleFunction("invoke")!!
-                val getOrNull = pluginContext.referenceFunctions(getOrNullCallableId)
-                    .first {
-                        it.owner.parameters.first().type.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.listClass.owner.classIdOrFail
-                    }
 
                 // Drop the receiver parameter
                 function.symbol.owner.parameters.drop(1)
@@ -386,7 +323,7 @@ class MockingbirdClassGenerator(
                         val matcherOrNull = irTemporary(
                             nameHint = "nullableMatcher",
                             value = getVerificationContextParameterMatcher
-                                .irCallFunction(getOrNull, irInt(index))
+                                .irCallFunction(kotlin.getOrNull.symbol, irInt(index))
                         )
                         val nonNullMatcher = irIfNull(
                             type = matcherOrNull.type,
@@ -395,8 +332,8 @@ class MockingbirdClassGenerator(
                                 .irCallFunction(defaultMatcher!!),
                             elsePart = irGet(matcherOrNull)
                         )
-                        +irCall(checkFunction).apply {
-                            val listGet = pluginContext.irBuiltIns.listClass.getSimpleFunction(
+                        +irCall(kotlin.check.symbol).apply {
+                            val listGet = irBuiltIns.listClass.getSimpleFunction(
                                 "get"
                             )!!
                             val invokedParameter = irTemporary(
@@ -422,31 +359,18 @@ class MockingbirdClassGenerator(
                         }
                     }
 
-                +irCall(
-                    pluginContext.referenceProperties(
-                        verificationContextParameterMatcherCallableId
-                    ).first().owner.setter!!
-                ).apply {
+                +irCall(verificationContext.parameterMatcher.setter).apply {
                     arguments[0] = irGet(verificationContextVariable)
-                    arguments[1] = irCall(
-                        pluginContext.referenceFunctions(emptyListOfCallableId)
-                            .first {
-                                it.owner.returnType.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.listClass.owner.classIdOrFail
-                            }
-                    )
+                    arguments[1] = irCall(kotlin.emptyList.symbol)
                 }
             },
             elsePart = irBlock {
-                val listAdd = pluginContext.irBuiltIns.mutableListClass.functions.first {
-                    it.owner.name == Name.identifier("add") && it.owner.parameters.size == 2
-                }
-                val invocationClass = pluginContext
-                    .referenceClass(invocationClassId)!!.owner
+                val invocationClass = invocation.symbol.owner
                 val invocationClassConstructor = invocationClass.primaryConstructor!!.symbol
                 +irGet(function.dispatchReceiverParameter!!)
                     .irCallFunction(invocationsIrProperty.getter!!)
                     .irCallFunction(
-                        listAdd,
+                        mutableList.listAdd.symbol,
                         irCallConstructor(
                             invocationClassConstructor,
                             emptyList()
@@ -454,15 +378,9 @@ class MockingbirdClassGenerator(
                             arguments[0] =
                                 irString(inheritedFunction.owner.fqNameWhenAvailable!!.asString())
 
-                            val listOf = pluginContext.referenceFunctions(listOfCallableId)
-                                .first {
-                                    it.owner.parameters.size == 1 &&
-                                            it.owner.parameters[0].isVararg &&
-                                            it.owner.returnType.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.listClass.owner.classIdOrFail
-                                }
-                            arguments[1] = irCall(listOf).apply {
+                            arguments[1] = irCall(kotlin.listOf.symbol).apply {
                                 arguments[0] = irVararg(
-                                    elementType = pluginContext.irBuiltIns.anyType,
+                                    elementType = irBuiltIns.anyType,
                                     // Drop the receiver parameter
                                     values = function.symbol.owner.parameters.drop(1)
                                         .map { irGet(it) }
@@ -476,20 +394,20 @@ class MockingbirdClassGenerator(
     }
 
     private fun IrFunction.irLambdaAnyReturn(value: IrExpression): IrFunctionExpressionImpl {
-        val lambda = pluginContext.irBuiltIns.functionN(0)
+        val lambda = irBuiltIns.functionN(0)
         return IrFunctionExpressionImpl(
             0,
             0,
-            lambda.typeWith(listOf(pluginContext.irBuiltIns.anyType)),
+            lambda.typeWith(listOf(irBuiltIns.anyType)),
             pluginContext.irFactory.buildFun {
                 name = Name.special("<anonymous>")
                 visibility = DescriptorVisibilities.LOCAL
-                returnType = pluginContext.irBuiltIns.anyType
+                returnType = irBuiltIns.anyType
                 origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
             }.apply {
                 parent = this@irLambdaAnyReturn
                 modality = Modality.FINAL
-                body = pluginContext.irBuiltIns.createIrBuilder(symbol).irBlockBody {
+                body = irBuiltIns.createIrBuilder(symbol).irBlockBody {
                     +irReturn(value)
                 }
             },
@@ -497,95 +415,4 @@ class MockingbirdClassGenerator(
         )
     }
 
-    context(builder: IrBuilder)
-    fun IrExpression.irCallFunction(
-        irFunction: IrFunction,
-        vararg parameters: IrExpression
-    ): IrFunctionAccessExpression = builder.irCall(irFunction).apply {
-        arguments[0] = this@irCallFunction
-        parameters.forEachIndexed { index, parameter ->
-            arguments[index + 1] = parameter
-        }
-    }
-
-    context(builder: IrBuilder)
-    fun IrExpression.irCallFunction(
-        irFunctionSymbol: IrFunctionSymbol,
-        vararg parameters: IrExpression
-    ): IrFunctionAccessExpression = builder.irCall(irFunctionSymbol).apply {
-        arguments[0] = this@irCallFunction
-        parameters.forEachIndexed { index, parameter ->
-            arguments[index + 1] = parameter
-        }
-    }
-
-    companion object {
-        val verifiableClassId =
-            ClassId.topLevel(FqName("com.anthonycr.mockingbird.core.Verifiable"))
-        val verifiableInvocationsPropertyCallableId = CallableId(
-            verifiableClassId,
-            Name.identifier("_mockingbird_invocations")
-        )
-        val verifiableVerificationContextCallableId = CallableId(
-            verifiableClassId,
-            Name.identifier("_mockingbird_verificationContext")
-        )
-
-        val invocationClassId = verifiableClassId.createNestedClassId(Name.identifier("Invocation"))
-        val invocationFunctionNamePropertyCallableId = CallableId(
-            invocationClassId,
-            Name.identifier("functionName")
-        )
-        val invocationParametersPropertyCallableId = CallableId(
-            invocationClassId,
-            Name.identifier("parameters")
-        )
-
-        val verificationContextClassId =
-            ClassId.topLevel(FqName("com.anthonycr.mockingbird.core.VerificationContext"))
-        val verificationContextParameterMatcherCallableId = CallableId(
-            verificationContextClassId,
-            Name.identifier("parameterMatcher")
-        )
-
-        val mutableListOfCallableId = CallableId(
-            FqName("kotlin.collections"),
-            Name.identifier("mutableListOf")
-        )
-
-        val emptyListOfCallableId = CallableId(
-            FqName("kotlin.collections"),
-            Name.identifier("emptyList")
-        )
-
-        val listOfCallableId = CallableId(
-            FqName("kotlin.collections"),
-            Name.identifier("listOf")
-        )
-
-        val firstOrNullCallableId = CallableId(
-            FqName("kotlin.collections"),
-            Name.identifier("firstOrNull")
-        )
-
-        val isNotEmptyCallableId = CallableId(
-            FqName("kotlin.collections"),
-            Name.identifier("isNotEmpty")
-        )
-
-        val getOrNullCallableId = CallableId(
-            FqName("kotlin.collections"),
-            Name.identifier("getOrNull")
-        )
-
-        val errorCallableId = CallableId(
-            FqName("kotlin"),
-            Name.identifier("error")
-        )
-
-        val checkCallableId = CallableId(
-            FqName("kotlin"),
-            Name.identifier("check")
-        )
-    }
 }

@@ -2,14 +2,11 @@ package com.anthonycr.mockingbird.compiler.ir
 
 import com.anthonycr.mockingbird.compiler.utils.debug
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.ir.IrStatement
-import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classFqName
-import org.jetbrains.kotlin.ir.util.classIdOrFail
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.name.FqName
@@ -19,15 +16,6 @@ class MockingbirdFunctionCollector(
 ) : IrElementTransformerVoid() {
 
     val typesToGenerate = mutableMapOf<FqName, IrType>()
-
-    var verifiableIrClass: IrClass? = null
-
-    override fun visitClass(declaration: IrClass): IrStatement {
-        if (declaration.classIdOrFail == MockingbirdClassGenerator.verifiableClassId) {
-            verifiableIrClass = declaration
-        }
-        return super.visitClass(declaration)
-    }
 
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     override fun visitCall(expression: IrCall): IrExpression {
