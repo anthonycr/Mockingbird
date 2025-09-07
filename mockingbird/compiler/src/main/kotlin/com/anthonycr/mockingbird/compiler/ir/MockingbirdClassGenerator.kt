@@ -110,7 +110,7 @@ class MockingbirdClassGenerator(
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     private fun generateFake(inheritedIrType: IrType): IrClass =
         pluginContext.irFactory.buildClass {
-            name = Name.identifier("${inheritedIrType.classOrFail.owner.name}_Fakes")
+            name = Name.identifier("${inheritedIrType.classOrFail.owner.name}_Fake")
             kind = ClassKind.CLASS
         }.apply {
             val irClass = this

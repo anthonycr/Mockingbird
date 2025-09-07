@@ -26,7 +26,7 @@ class MockingbirdCallSiteTransformer(
     override fun visitCall(expression: IrCall): IrExpression {
         if (expression.symbol.owner.kotlinFqName == fakeFunctionFqName) {
             val replacement =
-                generatedClasses.first { it.fqNameWhenAvailable!!.asString() == "${expression.type.classFqName!!.asString()}_Fakes" }
+                generatedClasses.first { it.fqNameWhenAvailable!!.asString() == "${expression.type.classFqName!!.asString()}_Fake" }
             val constructor = replacement.primaryConstructor!!.symbol
             messageCollector.debug("Transforming call site for ${constructor.owner.returnType.classFqName}")
 
