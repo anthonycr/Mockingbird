@@ -22,6 +22,18 @@ class MockingbirdCallSiteTransformer(
     val generatedClasses: List<IrClass>
 ) : IrElementTransformerVoid() {
 
+    /**
+     * Rewrites calls to `fake` with the appropriate fake constructor call.
+     *
+     * Given `fake` call in a test property initializer:
+     * ```
+     * val fakeInterface: Interface = fake()
+     * ```
+     * It rewrites the call to:
+     * ```
+     * val fakeInterface: Interface = Interface_Fake()
+     * ```
+     */
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     override fun visitCall(expression: IrCall): IrExpression {
         if (expression.symbol.owner.kotlinFqName == fakeFunctionFqName) {

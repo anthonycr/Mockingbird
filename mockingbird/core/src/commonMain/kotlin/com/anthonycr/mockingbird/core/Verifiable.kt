@@ -2,6 +2,8 @@
 
 package com.anthonycr.mockingbird.core
 
+import com.anthonycr.mockingbird.core.Verifiable.Matcher
+
 interface Verifiable {
 
     data class Invocation(
@@ -9,54 +11,64 @@ interface Verifiable {
         val parameters: List<Any?>
     )
 
+    sealed class Matcher(val matches: (Any?) -> Boolean) {
+
+        class Equals(val value: Any?) : Matcher({ it == value })
+
+        @Suppress("UNCHECKED_CAST")
+        class SameAs<T>(matcher: (T) -> Boolean) : Matcher({ matcher(it as T) })
+
+        object Anything : Matcher({ true })
+    }
+
     val _mockingbird_invocations: MutableList<Invocation>
 
     var _mockingbird_verificationContext: VerificationContext?
 }
 
+@Suppress("FunctionName", "Unused")
+fun Verifiable._verifyCall(functionName: String, matchers: List<Matcher>) {
+    requireNotNull(_mockingbird_verificationContext)
+    val invocation = _mockingbird_invocations.firstOrNull()
+    check(invocation != null) {
+        "Expected an invocation, but got none instead"
+    }
+    _mockingbird_invocations.removeAt(0)
+    check(invocation.functionName == functionName) {
+        "Expected function call $functionName, ${invocation.functionName} was called instead"
+    }
+    check(matchers.size == invocation.parameters.size) {
+        "Expected ${invocation.parameters.size} matchers, found ${matchers.size} instead. When using custom parameter verification, all parameters must use matchers."
+    }
+
+    invocation.parameters.forEachIndexed { index, parameter ->
+        val matcher = matchers[index]
+        check(matcher.matches(parameter)) {
+            when (matcher) {
+                Matcher.Anything -> "Compiler error."
+                is Matcher.Equals -> "Expected argument ${matcher.value}, found ${invocation.parameters[index]} instead."
+                is Matcher.SameAs<*> -> "Expected argument to pass [sameAs] matcher, found ${invocation.parameters[index]} instead."
+            }
+        }
+    }
+}
+
 class VerificationContext {
 
-    var parameterMatcher: List<(Any?, Any?) -> Boolean> = emptyList()
-
-    companion object {
-        val DEFAULT_MATCHER: (Any?, Any?) -> Boolean = { e, a -> e == a }
-    }
-
     /**
-     * Assert that the actual parameter is equal to [expected] using `==`. The same as passing a
-     * parameter directly to the function.
-     */
-    fun <T> eq(expected: T): T {
-        parameterMatcher += { e, a -> e == a }
-        return expected
-    }
-
-    /**
-     * Assert that the actual parameter is the same as the [expected] using the criteria provided by the
-     * [matcher].
+     * Assert that the actual parameter matches the criteria specified by [matcher].
      *
-     * @param expected The expected parameter that is evaluated against the actual parameter using the
-     * [matcher].
      * @param matcher Return `true` if the expected is the same as the actual, `false` otherwise.
      */
     @Suppress("UNCHECKED_CAST")
     fun <T> sameAs(
-        expected: T,
         matcher: (actual: T) -> Boolean
-    ): T {
-        parameterMatcher += { _, a -> matcher(a as T) }
-        return expected
-    }
+    ): T = error("AUTO-GENERATED")
 
     /**
      * Allows any parameter invocation to match.
-     *
-     * @param anything Required to execute the test, value is ignored and any parameter passed will match.
      */
-    fun <T> any(anything: T): T {
-        parameterMatcher += { _, _ -> true }
-        return anything
-    }
+    fun <T> any(): T = error("AUTO-GENERATED")
 }
 
 /**

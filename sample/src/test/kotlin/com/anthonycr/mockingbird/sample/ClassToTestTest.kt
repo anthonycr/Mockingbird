@@ -9,13 +9,9 @@ import org.junit.Test
 
 class ClassToTestTest {
 
-    val lambdaToVerify1: (String) -> Unit = {
-        // TODO implement compiled package visitation + type parameters
-    }
+    val lambdaToVerify1: (String) -> Unit = fake()
 
-    val lambdaToVerify2: (Int) -> Unit = {
-        // TODO implement compiled package visitation + type parameters
-    }
+    val lambdaToVerify2: (Int) -> Unit = fake()
 
     val interfaceToVerify1 = fake<InterfaceToVerify1>()
 
@@ -221,19 +217,19 @@ class ClassToTestTest {
         classToTest.act5()
 
         verify(interfaceToVerify1) {
-            interfaceToVerify1.performAction3(sameAs(Exception("test")) { a -> a.message == "test" })
+            interfaceToVerify1.performAction3(sameAs { a -> a.message == "test" })
         }
     }
 
     @Test
     fun `verification of inequitable type with parameter verification expected failure`() {
-        assertThrows<IllegalStateException>("Expected argument java.lang.Exception: test1, found java.lang.Exception: test instead.") {
+        assertThrows<IllegalStateException>("Expected argument to pass [sameAs] matcher, found java.lang.Exception: test instead.") {
             val classToTest = createClassToTest()
 
             classToTest.act5()
 
             verify(interfaceToVerify1) {
-                interfaceToVerify1.performAction3(sameAs(Exception("test1")) { a -> a.message == "test1" })
+                interfaceToVerify1.performAction3(sameAs { a -> a.message == "test1" })
             }
         }
     }
@@ -246,16 +242,16 @@ class ClassToTestTest {
 
         verify(interfaceToVerify1) {
             interfaceToVerify1.performAction4(
-                one = eq("one"),
-                two = any(1),
-                exception = sameAs(Exception("test")) { a -> a.message == "test" }
+                one = "one",
+                two = any(),
+                exception = sameAs { a -> a.message == "test" }
             )
         }
     }
 
     @Test
     fun `verification of multiple types with parameter verification expected failure`() {
-        assertThrows<IllegalStateException>("Expected 3 matchers, found 1 instead. When using custom parameter verification, all parameters must use matchers.") {
+        assertThrows<IllegalStateException>("Expected argument 1, found 2 instead.") {
             val classToTest = createClassToTest()
 
             classToTest.act6()
@@ -264,7 +260,7 @@ class ClassToTestTest {
                 interfaceToVerify1.performAction4(
                     one = "one",
                     two = 1,
-                    exception = sameAs(Exception("test")) { a -> a.message == "test" }
+                    exception = sameAs { a -> a.message == "test" }
                 )
             }
         }
@@ -297,7 +293,7 @@ class ClassToTestTest {
         classToTest.act8()
 
         verify(interfaceToVerify2) {
-            interfaceToVerify2.performAction4(eq("one"))
+            interfaceToVerify2.performAction4("one")
         }
     }
 

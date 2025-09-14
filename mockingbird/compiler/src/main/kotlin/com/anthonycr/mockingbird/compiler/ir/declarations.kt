@@ -68,6 +68,16 @@ class Verifiable(private val pluginContext: IrPluginContext) {
         )
     }
 
+    val verifyCall by lazy {
+        FunctionDeclaration(
+            callableId = CallableId(
+                FqName("com.anthonycr.mockingbird.core"),
+                Name.identifier("_verifyCall")
+            ),
+            pluginContext = pluginContext
+        ) { first() }
+    }
+
     class Invocation(private val pluginContext: IrPluginContext) {
         private val verifiable = Verifiable(pluginContext)
 
@@ -76,46 +86,51 @@ class Verifiable(private val pluginContext: IrPluginContext) {
         val symbol by lazy {
             pluginContext.referenceClass(classId)!!
         }
-
-        val functionName = PropertyDeclaration(
-            pluginContext,
-            CallableId(
-                classId,
-                Name.identifier("functionName")
-            )
-        )
-
-        val parameters = PropertyDeclaration(
-            pluginContext,
-            CallableId(
-                classId,
-                Name.identifier("parameters")
-            )
-        )
-    }
-}
-
-class VerificationContext(private val pluginContext: IrPluginContext) {
-    val classId = ClassId.topLevel(FqName("com.anthonycr.mockingbird.core.VerificationContext"))
-
-    val symbol by lazy {
-        pluginContext.referenceClass(classId)!!
     }
 
-    val parameterMatcher = PropertyDeclaration(
-        pluginContext,
-        CallableId(classId, Name.identifier("parameterMatcher"))
-    )
+    class Matcher(pluginContext: IrPluginContext) {
+        private val verifiable = Verifiable(pluginContext)
+
+        val classId = verifiable.classId.createNestedClassId(Name.identifier("Matcher"))
+
+        class Equals(private val pluginContext: IrPluginContext) {
+            val matcher = Matcher(pluginContext)
+
+            val classId = matcher.classId.createNestedClassId(Name.identifier("Equals"))
+
+            val symbol by lazy {
+                pluginContext.referenceClass(classId)!!
+            }
+
+            val value by lazy {
+                PropertyDeclaration(pluginContext, CallableId(Name.identifier("value")))
+            }
+        }
+
+        class SameAs(private val pluginContext: IrPluginContext) {
+            val matcher = Matcher(pluginContext)
+
+            val classId = matcher.classId.createNestedClassId(Name.identifier("SameAs"))
+
+            val symbol by lazy {
+                pluginContext.referenceClass(classId)!!
+            }
+        }
+
+        class Anything(private val pluginContext: IrPluginContext) {
+            val matcher = Matcher(pluginContext)
+
+            val classId = matcher.classId.createNestedClassId(Name.identifier("Anything"))
+
+            val symbol by lazy {
+                pluginContext.referenceClass(classId)!!
+            }
+        }
+    }
 }
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 class MutableListFunctions(private val pluginContext: IrPluginContext) {
-    val removeAt by lazy {
-        FunctionDeclaration {
-            pluginContext.irBuiltIns.mutableListClass.functions
-                .first { it.owner.name == Name.identifier("removeAt") }
-        }
-    }
 
     val listAdd by lazy {
         FunctionDeclaration {
@@ -142,20 +157,6 @@ class KotlinFunctions(private val pluginContext: IrPluginContext) {
         ) { first() }
     }
 
-    val emptyList by lazy {
-        FunctionDeclaration(
-            callableId = CallableId(
-                collectionsFqName,
-                Name.identifier("emptyList")
-            ),
-            pluginContext = pluginContext
-        ) {
-            first { symbol ->
-                symbol.owner.returnType.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.listClass.owner.classIdOrFail
-            }
-        }
-    }
-
     val listOf by lazy {
         FunctionDeclaration(
             CallableId(
@@ -168,46 +169,6 @@ class KotlinFunctions(private val pluginContext: IrPluginContext) {
                 it.owner.parameters.size == 1 &&
                         it.owner.parameters[0].isVararg &&
                         it.owner.returnType.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.listClass.owner.classIdOrFail
-            }
-        }
-    }
-
-    val firstOrNull by lazy {
-        FunctionDeclaration(
-            callableId = CallableId(
-                collectionsFqName,
-                Name.identifier("firstOrNull"),
-            ),
-            pluginContext = pluginContext
-        ) {
-            first { it.owner.parameters.firstOrNull()!!.type.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.listClass.owner.classIdOrFail }
-        }
-    }
-
-    val isNotEmpty by lazy {
-        FunctionDeclaration(
-            CallableId(
-                collectionsFqName,
-                Name.identifier("isNotEmpty")
-            ),
-            pluginContext
-        ) {
-            first {
-                it.owner.parameters.size == 1 && it.owner.parameters[0].type.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.collectionClass.owner.classIdOrFail
-            }
-        }
-    }
-
-    val getOrNull by lazy {
-        FunctionDeclaration(
-            CallableId(
-                collectionsFqName,
-                Name.identifier("getOrNull")
-            ),
-            pluginContext
-        ) {
-            first {
-                it.owner.parameters.first().type.classOrFail.owner.classIdOrFail == pluginContext.irBuiltIns.listClass.owner.classIdOrFail
             }
         }
     }
