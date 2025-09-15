@@ -2,8 +2,6 @@
 
 package com.anthonycr.mockingbird.core
 
-import com.anthonycr.mockingbird.core.Verifiable.Matcher
-
 interface Verifiable {
 
     data class Invocation(
@@ -27,7 +25,7 @@ interface Verifiable {
 }
 
 @Suppress("FunctionName", "Unused")
-fun Verifiable._verifyCall(functionName: String, matchers: List<Matcher>) {
+fun Verifiable._verifyCall(functionName: String, matchers: List<Verifiable.Matcher>) {
     requireNotNull(_mockingbird_verificationContext)
     val invocation = _mockingbird_invocations.firstOrNull()
     check(invocation != null) {
@@ -45,9 +43,9 @@ fun Verifiable._verifyCall(functionName: String, matchers: List<Matcher>) {
         val matcher = matchers[index]
         check(matcher.matches(parameter)) {
             when (matcher) {
-                Matcher.Anything -> "Compiler error."
-                is Matcher.Equals -> "Expected argument ${matcher.value}, found ${invocation.parameters[index]} instead."
-                is Matcher.SameAs<*> -> "Expected argument to pass [sameAs] matcher, found ${invocation.parameters[index]} instead."
+                Verifiable.Matcher.Anything -> "Compiler error."
+                is Verifiable.Matcher.Equals -> "Expected argument ${matcher.value}, found ${invocation.parameters[index]} instead."
+                is Verifiable.Matcher.SameAs<*> -> "Expected argument to pass [sameAs] matcher, found ${invocation.parameters[index]} instead."
             }
         }
     }
@@ -61,9 +59,7 @@ class VerificationContext {
      * @param matcher Return `true` if the expected is the same as the actual, `false` otherwise.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> sameAs(
-        matcher: (actual: T) -> Boolean
-    ): T = error("AUTO-GENERATED")
+    fun <T> sameAs(matcher: (actual: T) -> Boolean): T = error("AUTO-GENERATED")
 
     /**
      * Allows any parameter invocation to match.
