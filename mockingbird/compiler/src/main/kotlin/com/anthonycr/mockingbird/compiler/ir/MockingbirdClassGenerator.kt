@@ -1,6 +1,7 @@
 package com.anthonycr.mockingbird.compiler.ir
 
 import com.anthonycr.mockingbird.compiler.utils.debug
+import com.anthonycr.mockingbird.compiler.utils.debugDump
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -56,7 +57,6 @@ import org.jetbrains.kotlin.ir.util.addSimpleDelegatingConstructor
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.copyParametersFrom
 import org.jetbrains.kotlin.ir.util.createThisReceiverParameter
-import org.jetbrains.kotlin.ir.util.dumpKotlinLike
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.functions
 import org.jetbrains.kotlin.ir.util.isTypeParameter
@@ -70,14 +70,20 @@ import org.jetbrains.kotlin.name.Name
 
 class MockingbirdClassGenerator(
     val messageCollector: MessageCollector,
-    val pluginContext: IrPluginContext,
+    pluginContext: IrPluginContext,
     val typesToGenerate: Map<FqName, IrType>
 ) : IrElementTransformerVoid() {
 
     private val irBuiltIns = pluginContext.irBuiltIns
+    private val irFactory = pluginContext.irFactory
     private val verifiable = Verifiable(pluginContext)
     private val invocation = Verifiable.Invocation(pluginContext)
     private val kotlin = KotlinFunctions(pluginContext)
+    private val mutableList = MutableListFunctions(pluginContext)
+    val matcher = Verifiable.Matcher(pluginContext)
+    val equalsMatcher = Verifiable.Matcher.Equals(pluginContext)
+    val sameAsMatcher = Verifiable.Matcher.SameAs(pluginContext)
+    val anythingMatcher = Verifiable.Matcher.Anything(pluginContext)
 
     val classes = mutableListOf<IrClass>()
 
@@ -96,14 +102,13 @@ class MockingbirdClassGenerator(
                 classes.add(irClass)
 
                 messageCollector.debug("------------------------")
-                messageCollector.debug(irClass.dumpKotlinLike())
+                messageCollector.debugDump(irClass)
                 messageCollector.debug("------------------------")
             }
         return super.visitFile(declaration)
     }
 
-    class VerificationCallTransformer(
-        private val pluginContext: IrPluginContext,
+    inner class VerificationCallTransformer(
         private val messageCollector: MessageCollector,
         private val irBuiltIns: IrBuiltIns,
         private val properties: List<IrProperty>,
@@ -115,7 +120,7 @@ class MockingbirdClassGenerator(
 
             messageCollector.debug("Visiting call: ${statement.symbol.owner.name}")
             messageCollector.debug("------------------------")
-            messageCollector.debug(statement.dumpKotlinLike())
+            messageCollector.debugDump(statement)
             messageCollector.debug("------------------------")
             return if (statementFirstArgument is IrCall) {
                 val functionReceiverTarget =
@@ -127,22 +132,15 @@ class MockingbirdClassGenerator(
                     isMemberFunction
                 ) {
                     irBuiltIns.createIrBuilder(expression.symbol).irBlock {
-                        val verifiable = Verifiable(pluginContext)
-                        val matcher = Verifiable.Matcher(pluginContext)
-                        val equalsMatcher = Verifiable.Matcher.Equals(pluginContext)
-                        val sameAsMatcher = Verifiable.Matcher.SameAs(pluginContext)
-                        val anythingMatcher = Verifiable.Matcher.Anything(pluginContext)
-                        val listOf = KotlinFunctions(pluginContext).listOf
                         +statementFirstArgument
                             .irCallFunction(
                                 verifiable.verifyCall.symbol,
                                 irString(statement.symbol.owner.fqNameWhenAvailable!!.asString()),
-                                irCall(listOf.symbol).apply {
+                                irCall(kotlin.listOf.symbol).apply {
                                     arguments[0] = irVararg(
-                                        elementType = pluginContext.referenceClass(matcher.classId)!!.defaultType,
+                                        elementType = matcher.symbol.defaultType,
                                         // Drop receiver
                                         values = (statement.arguments.drop(1)).map {
-                                            require(it is IrExpression)
                                             if (it is IrCall) {
                                                 when (it.symbol.owner.name) {
                                                     Name.identifier("any") ->
@@ -170,13 +168,12 @@ class MockingbirdClassGenerator(
                     }.also {
                         messageCollector.debug("Transformed call:")
                         messageCollector.debug("------------------------")
-                        messageCollector.debug(it.dumpKotlinLike())
+                        messageCollector.debugDump(it)
                         messageCollector.debug("------------------------")
                     }
                 } else {
                     statement.transformChildren(
                         VerificationCallTransformer(
-                            pluginContext,
                             messageCollector,
                             irBuiltIns,
                             properties
@@ -188,7 +185,6 @@ class MockingbirdClassGenerator(
                 // May be a function call like repeat(n) with the body containing verification calls
                 statement.transformChildren(
                     VerificationCallTransformer(
-                        pluginContext,
                         messageCollector,
                         irBuiltIns,
                         properties
@@ -222,7 +218,12 @@ class MockingbirdClassGenerator(
         if (expression.target.name.asString() == "verify" || expression.target.name.asString() == "verifyPartial") {
             val verifiables = expression.arguments.first() as IrVararg
 
-            messageCollector.debug("Available verifiable instances: ${verifiables.elements.joinToString { it.dumpKotlinLike() }}")
+            messageCollector.debug("Available verifiable instances:")
+            messageCollector.debug("------------------------")
+            verifiables.elements.forEach {
+                messageCollector.debugDump(it)
+            }
+            messageCollector.debug("------------------------")
 
             val properties = verifiables.elements
                 .map { it as IrCall }
@@ -230,7 +231,6 @@ class MockingbirdClassGenerator(
 
             expression.transformChildren(
                 VerificationCallTransformer(
-                    pluginContext,
                     messageCollector,
                     irBuiltIns,
                     properties
@@ -271,7 +271,7 @@ class MockingbirdClassGenerator(
      */
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     private fun generateFake(inheritedIrType: IrType): IrClass =
-        pluginContext.irFactory.buildClass {
+        irFactory.buildClass {
             name = Name.identifier("${inheritedIrType.classOrFail.owner.name}_Fake")
             kind = ClassKind.CLASS
         }.apply {
@@ -405,7 +405,7 @@ class MockingbirdClassGenerator(
                 .irCallFunction(verificationContextIrProperty.getter!!)
         )
 
-        +irCall(KotlinFunctions(pluginContext).check.symbol).apply {
+        +irCall(kotlin.check.symbol).apply {
             arguments[0] = irEqualsNull(irGet(verificationContextVariable))
             arguments[1] = function.irLambdaAnyReturn(irConcat().apply {
                 arguments.add(irString("Function called inside verification block and not handled by mockingbird"))
@@ -413,7 +413,6 @@ class MockingbirdClassGenerator(
         }
 
 
-        val mutableList = MutableListFunctions(pluginContext)
         val invocationClass = invocation.symbol.owner
         val invocationClassConstructor = invocationClass.primaryConstructor!!.symbol
         +irGet(function.dispatchReceiverParameter!!)
@@ -446,7 +445,7 @@ class MockingbirdClassGenerator(
             0,
             0,
             lambda.typeWith(listOf(irBuiltIns.anyType)),
-            pluginContext.irFactory.buildFun {
+            irFactory.buildFun {
                 name = Name.special("<anonymous>")
                 visibility = DescriptorVisibilities.LOCAL
                 returnType = irBuiltIns.anyType

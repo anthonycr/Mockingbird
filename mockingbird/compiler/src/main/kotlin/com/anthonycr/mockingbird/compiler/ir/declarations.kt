@@ -93,6 +93,10 @@ class Verifiable(private val pluginContext: IrPluginContext) {
 
         val classId = verifiable.classId.createNestedClassId(Name.identifier("Matcher"))
 
+        val symbol by lazy {
+            pluginContext.referenceClass(classId)!!
+        }
+
         class Equals(private val pluginContext: IrPluginContext) {
             val matcher = Matcher(pluginContext)
 
