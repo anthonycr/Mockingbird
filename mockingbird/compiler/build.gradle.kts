@@ -22,7 +22,8 @@ dependencies {
 }
 
 mavenPublishing {
-    signAllPublications()
+    // TODO: Only disable signing on CI
+//    signAllPublications()
     publishToMavenCentral(automaticRelease = true)
     coordinates(artifactId = "compiler-plugin")
 }
