@@ -12,7 +12,6 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(project(":mockingbird:core"))
-//    kspTest(project(":mockingbird:processor"))
     kspTest(project(":benchmark:mockingbird:generator"))
 }
 
