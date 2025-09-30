@@ -9,17 +9,19 @@ import org.junit.Test
 
 class ClassToTestTest {
 
-    val lambdaToVerify1: (String) -> Unit = fake()
+    private val nonFake = ""
 
-    val lambdaToVerify2: (Int) -> Unit = fake()
+    private val lambdaToVerify1: (String) -> Unit = fake()
 
-    val interfaceToVerify1 = fake<InterfaceToVerify1>()
+    private val lambdaToVerify2: (Int) -> Unit = fake()
 
-    val interfaceToVerify2 = fake(InterfaceToVerify2::class.java)
+    private val interfaceToVerify1 = fake<InterfaceToVerify1>()
 
-    val classToVerify1 = fake<ClassToVerify1>()
+    private val interfaceToVerify2 = fake(InterfaceToVerify2::class.java)
 
-    val classToVerify2 = fake<ClassToVerify2>()
+    private val classToVerify1 = fake<ClassToVerify1>()
+
+    private val classToVerify2 = fake<ClassToVerify2>()
 
     private fun createClassToTest() = ClassToTest(
         lambdaToVerify1,
@@ -328,6 +330,15 @@ class ClassToTestTest {
         verify(classToVerify2) {
             classToVerify2.act1("one")
             classToVerify2.act1("two")
+        }
+    }
+
+    @Test
+    fun `verification of non faked class is not allowed`() {
+        assertThrows<IllegalStateException>("You can only verify interfaces that have been created by fake()") {
+            verify(nonFake) {
+                nonFake.chars()
+            }
         }
     }
 
