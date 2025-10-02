@@ -28,7 +28,6 @@ plugins {
 rootProject.name = "Mockingbird"
 include(":mockingbird:compiler")
 include(":mockingbird:core")
-include(":mockingbird:internal")
 include(":sample")
 include(":benchmark:mockk-static:generator")
 include(":benchmark:mockk-static:executor")

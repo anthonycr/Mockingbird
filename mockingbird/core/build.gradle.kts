@@ -21,8 +21,6 @@ java {
     sourceCompatibility = JavaVersion.VERSION_11
 }
 dependencies {
-    commonMainCompileOnly(project(":mockingbird:internal"))
-
     commonTestImplementation(libs.junit)
 }
 
