@@ -45,7 +45,7 @@ class FunctionDeclaration(
 }
 
 class Verifiable(private val pluginContext: IrPluginContext) {
-    val classId = ClassId.Companion.topLevel(FqName("com.anthonycr.mockingbird.core.Verifiable"))
+    val classId = ClassId.Companion.topLevel(FqName("com.anthonycr.mockingbird.core.internal.Verifiable"))
 
     val symbol by lazy {
         pluginContext.referenceClass(classId)!!
@@ -71,7 +71,7 @@ class Verifiable(private val pluginContext: IrPluginContext) {
     val verifyCall by lazy {
         FunctionDeclaration(
             callableId = CallableId(
-                FqName("com.anthonycr.mockingbird.core"),
+                FqName("com.anthonycr.mockingbird.core.internal"),
                 Name.identifier("_verifyCall")
             ),
             pluginContext = pluginContext
