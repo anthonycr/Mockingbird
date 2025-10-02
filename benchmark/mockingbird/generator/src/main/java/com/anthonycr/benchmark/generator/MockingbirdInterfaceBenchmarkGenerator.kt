@@ -55,7 +55,6 @@ class MockingbirdInterfaceBenchmarkGenerator(
                 PropertySpec.builder(it.simpleName.lowercase(), it)
                     .mutable(false)
                     .addModifiers(KModifier.PRIVATE)
-                    .addAnnotation(ClassName("com.anthonycr.mockingbird.core", "Verify"))
                     .initializer(
                         CodeBlock.builder()
                             .addStatement("com.anthonycr.mockingbird.core.fake()")
