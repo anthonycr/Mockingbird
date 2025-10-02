@@ -101,9 +101,7 @@ class MockingbirdClassGenerator(
                 declaration.addChild(irClass)
                 classes.add(irClass)
 
-                messageCollector.debug("------------------------")
                 messageCollector.debugDump(irClass)
-                messageCollector.debug("------------------------")
             }
         return super.visitFile(declaration)
     }
@@ -119,9 +117,7 @@ class MockingbirdClassGenerator(
             val statementFirstArgument = statement.arguments.first()
 
             messageCollector.debug("Visiting call: ${statement.symbol.owner.name}")
-            messageCollector.debug("------------------------")
             messageCollector.debugDump(statement)
-            messageCollector.debug("------------------------")
             return if (statementFirstArgument is IrCall) {
                 val functionReceiverTarget =
                     statementFirstArgument.symbol.owner.correspondingPropertySymbol?.owner?.backingField?.type?.classFqName
@@ -132,44 +128,41 @@ class MockingbirdClassGenerator(
                     isMemberFunction
                 ) {
                     irBuiltIns.createIrBuilder(expression.symbol).irBlock {
-                        +statementFirstArgument
-                            .irCallFunction(
-                                verifiable.verifyCall.symbol,
-                                irString(statement.symbol.owner.fqNameWhenAvailable!!.asString()),
-                                irCall(kotlin.listOf.symbol).apply {
-                                    arguments[0] = irVararg(
-                                        elementType = matcher.symbol.defaultType,
-                                        // Drop receiver
-                                        values = (statement.arguments.drop(1)).map {
-                                            if (it is IrCall) {
-                                                when (it.symbol.owner.name) {
-                                                    Name.identifier("any") ->
-                                                        irGetObject(anythingMatcher.symbol)
+                        +statementFirstArgument.irCallFunction(
+                            verifiable.verifyCall,
+                            irString(statement.symbol.owner.fqNameWhenAvailable!!.asString()),
+                            irCall(kotlin.listOf.symbol).apply {
+                                arguments[0] = irVararg(
+                                    elementType = matcher.symbol.defaultType,
+                                    // Drop receiver
+                                    values = (statement.arguments.drop(1)).map {
+                                        if (it is IrCall) {
+                                            when (it.symbol.owner.name) {
+                                                Name.identifier("any") ->
+                                                    irGetObject(anythingMatcher.symbol)
 
-                                                    Name.identifier("sameAs") -> irCall(
-                                                        sameAsMatcher.symbol.owner.primaryConstructor!!
-                                                    ).apply {
-                                                        arguments[0] = it.arguments[1]
-                                                    }
-
-                                                    else -> irCall(equalsMatcher.symbol.owner.primaryConstructor!!).apply {
-                                                        arguments[0] = it
-                                                    }
+                                                Name.identifier("sameAs") -> irCall(
+                                                    sameAsMatcher.symbol.owner.primaryConstructor!!
+                                                ).apply {
+                                                    arguments[0] = it.arguments[1]
                                                 }
-                                            } else {
-                                                irCall(equalsMatcher.symbol.owner.primaryConstructor!!).apply {
+
+                                                else -> irCall(equalsMatcher.symbol.owner.primaryConstructor!!).apply {
                                                     arguments[0] = it
                                                 }
                                             }
+                                        } else {
+                                            irCall(equalsMatcher.symbol.owner.primaryConstructor!!).apply {
+                                                arguments[0] = it
+                                            }
                                         }
-                                    )
-                                }
-                            )
+                                    }
+                                )
+                            }
+                        )
                     }.also {
                         messageCollector.debug("Transformed call:")
-                        messageCollector.debug("------------------------")
                         messageCollector.debugDump(it)
-                        messageCollector.debug("------------------------")
                     }
                 } else {
                     statement.transformChildren(
@@ -219,11 +212,9 @@ class MockingbirdClassGenerator(
             val verifiables = expression.arguments.first() as IrVararg
 
             messageCollector.debug("Available verifiable instances:")
-            messageCollector.debug("------------------------")
             verifiables.elements.forEach {
                 messageCollector.debugDump(it)
             }
-            messageCollector.debug("------------------------")
 
             val properties = verifiables.elements
                 .map { it as IrCall }
@@ -418,7 +409,7 @@ class MockingbirdClassGenerator(
         +irGet(function.dispatchReceiverParameter!!)
             .irCallFunction(invocationsIrProperty.getter!!)
             .irCallFunction(
-                mutableList.listAdd.symbol,
+                mutableList.listAdd,
                 irCallConstructor(
                     invocationClassConstructor,
                     emptyList()

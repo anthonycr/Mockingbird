@@ -16,12 +16,16 @@ fun MessageCollector.debug(message: String) {
 
 fun MessageCollector.debugDump(irElement: IrElement) {
     if (DEBUG) {
+        debug("------------------------")
         debug(irElement.dumpKotlinLike())
+        debug("------------------------")
     }
 }
 
 fun MessageCollector.debugDump(irClass: IrClass) {
     if (DEBUG) {
+        debug("------------------------")
         debug(irClass.dumpKotlinLike())
+        debug("------------------------")
     }
 }

@@ -20,9 +20,9 @@ fun IrExpression.irCallFunction(
 
 context(builder: IrBuilder)
 fun IrExpression.irCallFunction(
-    irFunctionSymbol: IrFunctionSymbol,
+    irFunctionDeclaration: FunctionDeclaration,
     vararg parameters: IrExpression
-): IrFunctionAccessExpression = builder.irCall(irFunctionSymbol).apply {
+): IrFunctionAccessExpression = builder.irCall(irFunctionDeclaration.symbol).apply {
     arguments[0] = this@irCallFunction
     parameters.forEachIndexed { index, parameter ->
         arguments[index + 1] = parameter
