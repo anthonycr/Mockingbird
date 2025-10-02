@@ -138,3 +138,5 @@ fun Any.verifyComplete() {
     check(this._mockingbird_verificationContext == null) { "Do not call verifyComplete from within a verify block" }
     check(this._mockingbird_invocations.isEmpty()) { "Expected no invocations, but found ${this._mockingbird_invocations.size} unverified" }
 }
+
+const val MUST_BE_VERIFIABLE = "You can only verify interfaces that have been created by fake()"
