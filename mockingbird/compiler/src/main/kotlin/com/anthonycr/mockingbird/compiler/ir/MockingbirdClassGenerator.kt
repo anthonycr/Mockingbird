@@ -69,9 +69,9 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
 class MockingbirdClassGenerator(
-    val messageCollector: MessageCollector,
+    private val messageCollector: MessageCollector,
     pluginContext: IrPluginContext,
-    val typesToGenerate: Map<FqName, IrType>
+    private val typesToGenerate: Map<FqName, IrType>
 ) : IrElementTransformerVoid() {
 
     private val irBuiltIns = pluginContext.irBuiltIns
@@ -80,10 +80,12 @@ class MockingbirdClassGenerator(
     private val invocation = Verifiable.Invocation(pluginContext)
     private val kotlin = KotlinFunctions(pluginContext)
     private val mutableList = MutableListFunctions(pluginContext)
-    val matcher = Verifiable.Matcher(pluginContext)
-    val equalsMatcher = Verifiable.Matcher.Equals(pluginContext)
-    val sameAsMatcher = Verifiable.Matcher.SameAs(pluginContext)
-    val anythingMatcher = Verifiable.Matcher.Anything(pluginContext)
+    private val matcher = Verifiable.Matcher(pluginContext)
+    private val equalsMatcher = Verifiable.Matcher.Equals(pluginContext)
+    private val sameAsMatcher = Verifiable.Matcher.SameAs(pluginContext)
+    private val anythingMatcher = Verifiable.Matcher.Anything(pluginContext)
+    private val anyName = Name.identifier("any")
+    private val sameAsName = Name.identifier("sameAs")
 
     val classes = mutableListOf<IrClass>()
 
@@ -138,10 +140,9 @@ class MockingbirdClassGenerator(
                                     values = (statement.arguments.drop(1)).map {
                                         if (it is IrCall) {
                                             when (it.symbol.owner.name) {
-                                                Name.identifier("any") ->
-                                                    irGetObject(anythingMatcher.symbol)
+                                                anyName -> irGetObject(anythingMatcher.symbol)
 
-                                                Name.identifier("sameAs") -> irCall(
+                                                sameAsName -> irCall(
                                                     sameAsMatcher.symbol.owner.primaryConstructor!!
                                                 ).apply {
                                                     arguments[0] = it.arguments[1]

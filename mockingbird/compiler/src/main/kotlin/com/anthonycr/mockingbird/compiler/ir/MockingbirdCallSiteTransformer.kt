@@ -17,9 +17,9 @@ import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
 class MockingbirdCallSiteTransformer(
-    val messageCollector: MessageCollector,
-    val pluginContext: IrPluginContext,
-    val generatedClasses: List<IrClass>
+    private val messageCollector: MessageCollector,
+    private val pluginContext: IrPluginContext,
+    private val generatedClasses: List<IrClass>
 ) : IrElementTransformerVoid() {
 
     /**
