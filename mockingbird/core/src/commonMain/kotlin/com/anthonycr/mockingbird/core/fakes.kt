@@ -12,7 +12,7 @@ fun <T> fake(clazz: Class<T>): T = try {
     fakeInternal(clazz)
 } catch (noClassDefFoundError: NoClassDefFoundError) {
     throw RuntimeException(
-        "Generated code is missing. Please apply the KSP plugin and add `kspTest(com.anthonycr.mockingbird:processor:<latest_version>)` as a dependency.",
+        "Generated code is missing. Please apply the Mockingbird Gradle plugin.",
         noClassDefFoundError
     )
 }
