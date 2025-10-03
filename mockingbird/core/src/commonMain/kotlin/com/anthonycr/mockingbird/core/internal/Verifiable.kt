@@ -1,5 +1,6 @@
 package com.anthonycr.mockingbird.core.internal
 
+@Suppress("PropertyName")
 interface Verifiable {
 
     data class Invocation(

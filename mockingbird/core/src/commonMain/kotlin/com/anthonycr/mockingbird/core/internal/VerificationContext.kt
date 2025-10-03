@@ -7,7 +7,7 @@ class VerificationContext {
      *
      * @param matcher Return `true` if the expected is the same as the actual, `false` otherwise.
      */
-    @Suppress("UNCHECKED_CAST")
+    @Suppress("unused")
     fun <T> sameAs(matcher: (actual: T) -> Boolean): T = error("AUTO-GENERATED")
 
     /**
