@@ -9,11 +9,7 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrBuiltIns
-import org.jetbrains.kotlin.ir.builders.declarations.addBackingField
-import org.jetbrains.kotlin.ir.builders.declarations.addDefaultGetter
-import org.jetbrains.kotlin.ir.builders.declarations.addDefaultSetter
 import org.jetbrains.kotlin.ir.builders.declarations.addFunction
-import org.jetbrains.kotlin.ir.builders.declarations.addProperty
 import org.jetbrains.kotlin.ir.builders.declarations.buildClass
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.builders.irBlock
@@ -22,7 +18,6 @@ import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irCallConstructor
 import org.jetbrains.kotlin.ir.builders.irConcat
 import org.jetbrains.kotlin.ir.builders.irEqualsNull
-import org.jetbrains.kotlin.ir.builders.irExprBody
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irGetObject
 import org.jetbrains.kotlin.ir.builders.irNull
@@ -63,7 +58,6 @@ import org.jetbrains.kotlin.ir.util.isTypeParameter
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.util.superTypes
-import org.jetbrains.kotlin.ir.util.target
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -86,6 +80,8 @@ class MockingbirdClassGenerator(
     private val anythingMatcher = Verifiable.Matcher.Anything(pluginContext)
     private val anyName = Name.identifier("any")
     private val sameAsName = Name.identifier("sameAs")
+    private val verifyName = FqName("com.anthonycr.mockingbird.core.verify")
+    private val verifyPartialName = FqName("com.anthonycr.mockingbird.core.verifyPartial")
 
     val classes = mutableListOf<IrClass>()
 
@@ -94,17 +90,16 @@ class MockingbirdClassGenerator(
         val fakeFqName =
             declaration.packageFqName.child(Name.identifier(declaration.name.substringBeforeLast("_")))
         messageCollector.debug("Visiting file: ${declaration.packageFqName.asString()}.${declaration.name}")
-        typesToGenerate.filter { it.key == fakeFqName }
-            .forEach { (inheritedFqName, inheritedIrType) ->
-                messageCollector.debug("Generating fake for $inheritedFqName")
+        typesToGenerate[fakeFqName]?.let { inheritedIrType ->
+            messageCollector.debug("Generating fake for $fakeFqName")
 
-                val irClass = generateFake(inheritedIrType)
+            val irClass = generateFake(inheritedIrType)
 
-                declaration.addChild(irClass)
-                classes.add(irClass)
+            declaration.addChild(irClass)
+            classes.add(irClass)
 
-                messageCollector.debugDump(irClass)
-            }
+            messageCollector.debugDump(irClass)
+        }
         return super.visitFile(declaration)
     }
 
@@ -208,8 +203,9 @@ class MockingbirdClassGenerator(
      */
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     override fun visitCall(expression: IrCall): IrExpression {
-        // TODO better function name check
-        if (expression.target.name.asString() == "verify" || expression.target.name.asString() == "verifyPartial") {
+        if (expression.symbol.owner.kotlinFqName == verifyName ||
+            expression.symbol.owner.kotlinFqName == verifyPartialName
+        ) {
             val verifiables = expression.arguments.first() as IrVararg
 
             messageCollector.debug("Available verifiable instances:")
@@ -284,38 +280,20 @@ class MockingbirdClassGenerator(
                 isPrimary = true
             )
 
-            val invocationsIrProperty = addProperty {
-                name = verifiable.invocations.callableId.callableName
-                updateFrom(verifiable.invocations.symbol.owner)
-            }.apply {
-                overriddenSymbols = listOf(verifiable.invocations.symbol)
-                addBackingField {
-                    type = verifiable.invocations.getter.returnType
-                }.apply {
-                    initializer = with(irBuiltIns.createIrBuilder(symbol)) {
-                        irExprBody(irCall(kotlin.mutableListOf.symbol))
-                    }
-                }
-                addDefaultGetter(irClass, irBuiltIns)
-                getter!!.overriddenSymbols = listOf(verifiable.invocations.getter.symbol)
+            val invocationsIrProperty = addPropertyFromDeclaration(
+                irBuiltIns = irBuiltIns,
+                propertyDeclaration = verifiable.invocations,
+                mutable = false
+            ) {
+                irCall(kotlin.mutableListOf.symbol)
             }
 
-            val verificationContextIrProperty = addProperty {
-                name = verifiable.verificationContext.callableId.callableName
-                updateFrom(verifiable.verificationContext.symbol.owner)
-            }.apply {
-                overriddenSymbols = listOf(verifiable.verificationContext.symbol)
-                addBackingField {
-                    type = verifiable.verificationContext.getter.returnType
-                }.apply {
-                    initializer = with(irBuiltIns.createIrBuilder(symbol)) {
-                        irExprBody(irNull())
-                    }
-                }
-                addDefaultGetter(irClass, irBuiltIns)
-                addDefaultSetter(irClass, irBuiltIns)
-                getter!!.overriddenSymbols = listOf(verifiable.verificationContext.getter.symbol)
-                setter!!.overriddenSymbols = listOf(verifiable.verificationContext.setter.symbol)
+            val verificationContextIrProperty = addPropertyFromDeclaration(
+                irBuiltIns = irBuiltIns,
+                propertyDeclaration = verifiable.verificationContext,
+                mutable = true
+            ) {
+                irNull()
             }
 
             val supportedModalities = listOf(Modality.ABSTRACT, Modality.OPEN)
