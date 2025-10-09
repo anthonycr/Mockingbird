@@ -23,7 +23,7 @@ class MockingbirdSymbolProcessorTest {
         verbose = false
         sources = list
         jvmTarget = JvmTarget.JVM_11.description
-        configureKsp(useKsp2 = true) {
+        configureKsp {
             symbolProcessorProviders += MockingbirdSymbolProcessorProvider()
         }
     }.compile()
