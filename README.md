@@ -94,6 +94,22 @@ class ClassToTestTest {
 }
 ```
 
+There are 3 `verify*` functions.
+1. `verify`: This function accepts all the parameters that you wish to verify, performs the
+    verifications, and finally asserts that there are no unverified invocations.
+2. `verifyPartial`: This function behaves similarly to `verify`, except that it does not assert that
+    there are no unverified invocations at the end.
+3. `verifyComplete`: This function verifies that there are no unverified invocations left. This is
+    useful if you want to verify that no functions were called, or if you are using `verifyPartial`
+    and want to assert that one of the subjects being verified is actually fully verified.
+
+There are 3 matcher functions that can be used to match parameters. If any parameter has a matcher,
+then all parameters must have a matcher for that invocation.
+1. `eq`: Just asserts that the value passed in matches using `==`
+2. `sameAs`: Asserts that the value passed in matches using the lambda matcher.
+3. `any`: Accepts any parameter, useful for dynamic values or values that you really don't care
+    about asserting in your test.
+
 ## Benchmark
 Run `./benchmark.sh` to execute a benchmark comparison of Mockingbird to Mockk. There are two Mockk
 benchmarks. The first, `mockk-interface` just mocks an interface. The second, `mockk-static` uses a
