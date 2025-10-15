@@ -131,3 +131,54 @@ val invalidAbstractClassWithConstructorParameters = SourceFile.kotlin("Test8.kt"
     }
 """.trimIndent())
 
+val packagePrivateJavaSrc = listOf(
+    SourceFile.java(
+        "FeatureAnalytics.java", """
+    package com.anthonycr.test.feature;
+    
+    interface FeatureAnalytics {
+        void trackEvent(String event);
+    }
+""".trimIndent()
+    ), SourceFile.kotlin(
+        "Test9.kt", """
+        package com.anthonycr.test
+        
+        import com.anthonycr.mockingbird.core.fake
+        import com.anthonycr.mockingbird.core.Verify
+        import com.anthonycr.test.feature.FeatureAnalytics
+        
+        class Test {
+        
+            @Verify
+            private val featureAnalytics = fake<FeatureAnalytics>()
+        }
+    """.trimIndent()
+    )
+)
+
+val fakedInternalClassCarriesOverModifier = listOf(
+    SourceFile.kotlin(
+        "FeatureAnalytics.kt", """
+    package com.anthonycr.test.feature
+    
+    internal interface FeatureAnalytics {
+         fun trackEvent(event: String)
+    }
+""".trimIndent()
+    ), SourceFile.kotlin(
+        "Test9.kt", """
+        package com.anthonycr.test
+        
+        import com.anthonycr.mockingbird.core.fake
+        import com.anthonycr.mockingbird.core.Verify
+        import com.anthonycr.test.feature.FeatureAnalytics
+        
+        internal class Test {
+        
+            @Verify
+            private val featureAnalytics = fake<FeatureAnalytics>()
+        }
+    """.trimIndent()
+    )
+)
