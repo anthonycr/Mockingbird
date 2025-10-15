@@ -7,6 +7,7 @@ import com.anthonycr.mockingbird.processor.internal.generator.FakeFunctionGenera
 import com.anthonycr.mockingbird.processor.internal.generator.FakeImplementationGenerator
 import com.anthonycr.mockingbird.processor.internal.isInterface
 import com.google.devtools.ksp.getConstructors
+import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.isAbstract
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
@@ -15,7 +16,9 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.google.devtools.ksp.symbol.Visibility
 import com.squareup.kotlinpoet.ksp.writeTo
+import kotlin.math.log
 
 class MockingbirdSymbolProcessor(
     private val codeGenerator: CodeGenerator,
@@ -44,6 +47,12 @@ class MockingbirdSymbolProcessor(
                     resolvedDeclaration is KSClassDeclaration &&
                             (resolvedDeclaration.isInterface || resolvedDeclaration.isAbstract())
                 }
+            )
+            .check(
+                message = "Package private Java files cannot be verified, please update the visibility modifier to public",
+                logger = logger,
+                node = { (declaration, _) -> declaration },
+                condition = { (_, resolvedDeclaration) -> resolvedDeclaration.getVisibility() != Visibility.JAVA_PACKAGE }
             )
             .filterIsInstance<Pair<KSPropertyDeclaration, KSClassDeclaration>>()
             .check(
