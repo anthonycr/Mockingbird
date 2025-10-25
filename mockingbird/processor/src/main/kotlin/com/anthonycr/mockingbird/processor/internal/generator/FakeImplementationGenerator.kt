@@ -4,11 +4,14 @@ import com.anthonycr.mockingbird.core.Verifiable
 import com.anthonycr.mockingbird.core.VerificationContext
 import com.anthonycr.mockingbird.processor.internal.isInterface
 import com.anthonycr.mockingbird.processor.internal.safePackageName
+import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.Modifier
+import com.google.devtools.ksp.symbol.Visibility
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
@@ -58,9 +61,14 @@ class FakeImplementationGenerator {
         val typeParameters = interfaceDeclaration.typeParameters.map {
             it.bounds.first().toTypeName()
         }
+        val visibilityModifier = interfaceDeclaration.visibility()
+
         val implementationTypeSpec = TypeSpec.classBuilder(implementationClassName)
-            .addModifiers(KModifier.PUBLIC)
             .apply {
+                if (visibilityModifier != null) {
+                    addModifiers(visibilityModifier)
+                }
+
                 if (interfaceDeclaration.isInterface) {
                     addSuperinterface(
                         interfaceDeclaration.toClassName().maybeParameterizedBy(typeParameters)
@@ -111,9 +119,15 @@ class FakeImplementationGenerator {
             .filterIsInstance<KSFunctionDeclaration>()
             .filter { it.isAbstract }
         for (function in functions) {
+            val visibilityModifier = function.visibility()
             val returnType = function.returnType?.resolveType() ?: unitTypeName
             val funSpec = FunSpec.builder(function.simpleName.asString())
-                .addModifiers(KModifier.OVERRIDE)
+                .addModifiers(buildList {
+                    add(KModifier.OVERRIDE)
+                    if (visibilityModifier != null) {
+                        add(visibilityModifier)
+                    }
+                })
                 .apply {
                     if (function.modifiers.contains(Modifier.SUSPEND)) {
                         addModifiers(KModifier.SUSPEND)
@@ -208,4 +222,14 @@ class FakeImplementationGenerator {
         }
     }
 
+    private fun KSDeclaration.visibility(): KModifier? = when(getVisibility()) {
+        Visibility.PUBLIC -> KModifier.PUBLIC
+        Visibility.PRIVATE -> KModifier.PRIVATE
+        Visibility.PROTECTED -> KModifier.PROTECTED
+        Visibility.INTERNAL -> KModifier.INTERNAL
+        // we error out for JAVA_PACKAGE in `MockingbirdSymbolProcessor` and it's not
+        // possible for us to read a local function.
+        Visibility.JAVA_PACKAGE,
+        Visibility.LOCAL -> null
+    }
 }
