@@ -9,6 +9,7 @@ import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import kotlin.reflect.KVisibility
 
 @OptIn(ExperimentalCompilerApi::class)
 class MockingbirdSymbolProcessorTest {
@@ -85,5 +86,24 @@ class MockingbirdSymbolProcessorTest {
 
         Assert.assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, result.exitCode)
         Assert.assertTrue(result.messages.contains(Regex("\\s.*/Test8.kt:12: Only abstract classes with zero argument constructors can be verified:\\s.*/Test8.kt:12")))
+    }
+
+    @Test
+    fun `attempting to fake package private java file fails to compile`() {
+        val result = compile(packagePrivateJavaSrc)
+
+        Assert.assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, result.exitCode)
+        Assert.assertTrue(result.messages.contains(Regex("\\s.*/Test9.kt:10: Package private Java files cannot be verified, please update the visibility modifier to public:\\s.*/Test9.kt:10")))
+    }
+
+    @Test
+    fun `faked internal class carries over visibility modifier to generated fake`() {
+        val result = compile(fakedInternalClassCarriesOverModifier)
+
+        Assert.assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+
+        val generatedFake = result.classLoader.loadClass("com.anthonycr.test.feature.FeatureAnalytics_Fake").kotlin
+
+        Assert.assertEquals(generatedFake.visibility, KVisibility.INTERNAL)
     }
 }

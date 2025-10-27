@@ -20,6 +20,7 @@ dependencies {
 
     testImplementation(libs.compiletesting)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlin.reflect)
 }
 
 mavenPublishing {
