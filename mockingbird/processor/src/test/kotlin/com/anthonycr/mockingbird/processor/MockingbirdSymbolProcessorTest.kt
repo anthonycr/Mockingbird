@@ -3,9 +3,9 @@ package com.anthonycr.mockingbird.processor
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import com.tschuchort.compiletesting.configureKsp
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.JvmTarget
-import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -33,77 +33,77 @@ class MockingbirdSymbolProcessorTest {
     fun `non property annotated fails to compile`() {
         val result = compile(listOf(nonPropertyAnnotatedSource))
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, result.exitCode)
-        Assert.assertTrue(result.messages.contains("/Test1.kt:7: Only properties can be annotated with Verify"))
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.COMPILATION_ERROR)
+        assertThat(result.messages).containsPattern("/Test1.kt:7: Only properties can be annotated with Verify")
     }
 
     @Test
     fun `annotated class property fails to compile`() {
         val result = compile(listOf(nonInterfaceAnnotatedSource))
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, result.exitCode)
-        Assert.assertTrue(result.messages.contains(Regex("\\s.*/Test2.kt:13: Only interfaces and abstract classes can be verified:\\s.*/Test2.kt:13")))
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.COMPILATION_ERROR)
+        assertThat(result.messages).containsPattern("\\s.*/Test2.kt:13: Only interfaces and abstract classes can be verified:\\s.*/Test2.kt:13")
     }
 
     @Test
     fun `annotated simple interface compiles successfully`() {
         val result = compile(listOf(validInterfaceAnnotatedSource))
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
     }
 
     @Test
     fun `annotated immutable property of simple interface compiles successfully`() {
         val result = compile(listOf(validInterfaceAnnotatedImmutableProperty))
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
     }
 
     @Test
     fun `annotated lambda property compiles successfully`() {
         val result = compile(listOf(validFunctionReferenceAnnotatedSource))
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
     }
 
     @Test
     fun `abstract class with abstract function compiles successfully`() {
         val result = compile(listOf(validAbstractClassOneFunction))
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
     }
 
     @Test
     fun `abstract class with abstract function and real function compiles successfully`() {
         val result = compile(listOf(validAbstractClassRealAndAbstractFunction))
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
     }
 
     @Test
     fun `abstract class with constructor parameters fails to compile`() {
         val result = compile(listOf(invalidAbstractClassWithConstructorParameters))
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, result.exitCode)
-        Assert.assertTrue(result.messages.contains(Regex("\\s.*/Test8.kt:12: Only abstract classes with zero argument constructors can be verified:\\s.*/Test8.kt:12")))
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.COMPILATION_ERROR)
+        assertThat(result.messages).containsPattern("\\s.*/Test8.kt:12: Only abstract classes with zero argument constructors can be verified:\\s.*/Test8.kt:12")
     }
 
     @Test
     fun `attempting to fake package private java file fails to compile`() {
         val result = compile(packagePrivateJavaSrc)
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, result.exitCode)
-        Assert.assertTrue(result.messages.contains(Regex("\\s.*/Test9.kt:10: Package private Java files cannot be verified, please update the visibility modifier to public:\\s.*/Test9.kt:10")))
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.COMPILATION_ERROR)
+        assertThat(result.messages).containsPattern("\\s.*/Test9.kt:10: Package private Java files cannot be verified, please update the visibility modifier to public:\\s.*/Test9.kt:10")
     }
 
     @Test
     fun `faked internal class carries over visibility modifier to generated fake`() {
         val result = compile(fakedInternalClassCarriesOverModifier)
 
-        Assert.assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+        assertThat(result.exitCode).isEqualTo(KotlinCompilation.ExitCode.OK)
 
         val generatedFake = result.classLoader.loadClass("com.anthonycr.test.feature.FeatureAnalytics_Fake").kotlin
 
-        Assert.assertEquals(generatedFake.visibility, KVisibility.INTERNAL)
+        assertThat(generatedFake.visibility).isEqualTo(KVisibility.INTERNAL)
     }
 }

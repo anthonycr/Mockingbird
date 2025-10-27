@@ -21,6 +21,7 @@ dependencies {
     testImplementation(libs.compiletesting)
     testImplementation(libs.junit)
     testImplementation(libs.kotlin.reflect)
+    testImplementation(libs.assertj)
 }
 
 mavenPublishing {
