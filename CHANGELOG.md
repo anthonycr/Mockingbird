@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.2.0 *(27 October 2025)*
+- Support `internal` interfaces and classes.
+- Updated Kotlin to 2.2.21
+- Updated KSP to 2.3.0
+
 ## 2.1.0 *(23 May 2025)*
 - Updated KotlinPoet to 2.2.0
 - Updated Kotlin to 2.1.21
