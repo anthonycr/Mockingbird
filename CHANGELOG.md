@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 2.2.0 *(1 November 2025)*
+## 2.3.0 *(1 November 2025)*
 - Standardize error messaging in assertions so that the Intellij test runner can perform diffing of parameters and function names.
 
 ## 2.2.0 *(27 October 2025)*
