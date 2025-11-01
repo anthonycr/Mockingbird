@@ -165,7 +165,7 @@ class FakeImplementationGenerator {
                 .addStatement("_mockingbird_invocations.removeAt(0)")
                 .beginControlFlow("check(invocation.functionName == %S)", functionName)
                 .addStatement(
-                    "\"Expected function call %1L, \${invocation.functionName} was called instead\"",
+                    "\"expected: < FUNCTION_CALL: %1L> but was: < FUNCTION_CALL: \${invocation.functionName}>\"",
                     functionName,
                 )
                 .endControlFlow()
@@ -184,7 +184,7 @@ class FakeImplementationGenerator {
                             name
                         )
                         addStatement(
-                            "\"Expected argument \$%1L, found \${invocation.parameters[%2L]} instead.\"",
+                            "\"expected: < ARGUMENT $index: $%1L> but was: < ARGUMENT $index: \${invocation.parameters[%2L]}>\"",
                             name,
                             index
                         )
