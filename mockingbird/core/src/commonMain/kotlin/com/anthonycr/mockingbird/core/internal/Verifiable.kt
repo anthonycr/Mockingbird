@@ -32,19 +32,19 @@ fun Verifiable._verifyCall(functionName: String, matchers: List<Verifiable.Match
     }
     _mockingbird_invocations.removeAt(0)
     check(invocation.functionName == functionName) {
-        "Expected function call $functionName, ${invocation.functionName} was called instead"
+        "expected: < FUNCTION_CALL: $functionName> but was: < FUNCTION_CALL: ${invocation.functionName}>"
     }
     check(matchers.size == invocation.parameters.size) {
-        "Expected ${invocation.parameters.size} matchers, found ${matchers.size} instead. When using custom parameter verification, all parameters must use matchers."
+        "Expected ${invocation.parameters.size} matchers, found ${matchers.size} instead. This is a bug, please file an issue."
     }
 
     invocation.parameters.forEachIndexed { index, parameter ->
         val matcher = matchers[index]
         check(matcher.matches(parameter)) {
             when (matcher) {
-                Verifiable.Matcher.Anything -> "Compiler error."
-                is Verifiable.Matcher.Equals -> "Expected argument ${matcher.value}, found ${invocation.parameters[index]} instead."
-                is Verifiable.Matcher.SameAs<*> -> "Expected argument to pass [sameAs] matcher, found ${invocation.parameters[index]} instead."
+                Verifiable.Matcher.Anything -> "This is a bug, please file an issue."
+                is Verifiable.Matcher.Equals -> "expected: < ARGUMENT $index: ${matcher.value}> but was: < ARGUMENT $index: ${invocation.parameters[index]}>"
+                is Verifiable.Matcher.SameAs<*> -> "[sameAs] matcher for <ARGUMENT $index> rejects value: ${invocation.parameters[index]}"
             }
         }
     }

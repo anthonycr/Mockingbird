@@ -225,7 +225,7 @@ class ClassToTestTest {
 
     @Test
     fun `verification of inequitable type with parameter verification expected failure`() {
-        assertThrows<IllegalStateException>("expected: < ARGUMENT 0: java.lang.Exception: test1> but was: < ARGUMENT 0: java.lang.Exception: test>") {
+        assertThrows<IllegalStateException>("[sameAs] matcher for <ARGUMENT 0> rejects value: java.lang.Exception: test") {
             val classToTest = createClassToTest()
 
             classToTest.act5()
@@ -253,7 +253,7 @@ class ClassToTestTest {
 
     @Test
     fun `verification of multiple types with parameter verification expected failure`() {
-        assertThrows<IllegalStateException>("Expected argument 1, found 2 instead.") {
+        assertThrows<IllegalStateException>("expected: < ARGUMENT 1: 1> but was: < ARGUMENT 1: 2>") {
             val classToTest = createClassToTest()
 
             classToTest.act6()
