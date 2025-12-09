@@ -20,7 +20,7 @@ dependencies {
     testImplementation(libs.junit)
 }
 
-version = "2.1.0"//property("VERSION").toString()
+version = "2.3.0"//property("VERSION").toString()
 group = "com.anthonycr.mockingbird.gradle-plugin"//property("GROUP").toString()
 
 gradlePlugin {
