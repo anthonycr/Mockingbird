@@ -23,4 +23,4 @@ jobs:
       - name: Publish Compiler Plugin
         run: ./gradlew :mockingbird:compiler:publishToMavenLocal
       - name: Build
-        run: ./gradlew :mockingbird:compiler:publishToMavenLocal build
+        run: ./gradlew build
