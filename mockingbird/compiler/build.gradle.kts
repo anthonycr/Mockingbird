@@ -19,6 +19,8 @@ dependencies {
     compileOnly(libs.kotlin.compiler)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlin.reflect)
+    testImplementation(libs.assertj)
 }
 
 mavenPublishing {

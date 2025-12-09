@@ -49,7 +49,7 @@ class ClassToTestTest {
 
     @Test
     fun `act1 expected failure`() {
-        assertThrows<IllegalStateException>("Expected argument 2, found 1 instead.") {
+        assertThrows<IllegalStateException>("expected: < ARGUMENT 0: 2> but was: < ARGUMENT 0: 1>") {
             val classToTest = createClassToTest()
 
             classToTest.act1()
@@ -78,7 +78,7 @@ class ClassToTestTest {
 
     @Test
     fun `act2 expected failure`() {
-        assertThrows<IllegalStateException>("Expected function call com.anthonycr.mockingbird.sample.InterfaceToVerify1.performAction1, com.anthonycr.mockingbird.sample.InterfaceToVerify1.performAction2 was called instead") {
+        assertThrows<IllegalStateException>("expected: < FUNCTION_CALL: com.anthonycr.mockingbird.sample.InterfaceToVerify1.performAction1> but was: < FUNCTION_CALL: com.anthonycr.mockingbird.sample.InterfaceToVerify1.performAction2>") {
             val classToTest = createClassToTest()
 
             classToTest.act2()
@@ -201,7 +201,7 @@ class ClassToTestTest {
 
     @Test
     fun `verification of inequitable type expected failure`() {
-        assertThrows<IllegalStateException>("Expected argument java.lang.Exception: test, found java.lang.Exception: test instead.") {
+        assertThrows<IllegalStateException>("expected: < ARGUMENT 0: java.lang.Exception: test> but was: < ARGUMENT 0: java.lang.Exception: test>") {
             val classToTest = createClassToTest()
 
             classToTest.act5()
@@ -225,7 +225,7 @@ class ClassToTestTest {
 
     @Test
     fun `verification of inequitable type with parameter verification expected failure`() {
-        assertThrows<IllegalStateException>("Expected argument to pass [sameAs] matcher, found java.lang.Exception: test instead.") {
+        assertThrows<IllegalStateException>("expected: < ARGUMENT 0: java.lang.Exception: test1> but was: < ARGUMENT 0: java.lang.Exception: test>") {
             val classToTest = createClassToTest()
 
             classToTest.act5()

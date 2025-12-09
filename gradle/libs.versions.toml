@@ -1,22 +1,24 @@
 [versions]
 junit = "4.13.2"
-jetbrainsKotlin = "2.2.20"
+jetbrainsKotlin = "2.2.21"
 kotlinpoet = "2.2.0"
-ksp = "2.2.20-2.0.4"
+ksp = "2.3.3"
 jvm = "17"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+assertj = { group = "org.assertj", name = "assertj-core", version = "3.27.6" }
 ksp-api = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
 kotlin-compiler = { group = "org.jetbrains.kotlin", name = "kotlin-compiler", version.ref = "jetbrainsKotlin" }
 kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }
 kotlinpoet-ksp = { group = "com.squareup", name = "kotlinpoet-ksp", version.ref = "kotlinpoet" }
-compiletesting = { group = "dev.zacsweers.kctfork", name = "ksp", version = "0.10.1" }
-mockk = { group = "io.mockk", name = "mockk", version = "1.14.6" }
+compiletesting = { group = "dev.zacsweers.kctfork", name = "ksp", version = "0.11.1" }
+mockk = { group = "io.mockk", name = "mockk", version = "1.14.7" }
 coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version = "1.10.2" }
+kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "jetbrainsKotlin" }
 
 [plugins]
 ksp-plugin = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlin" }
 jetbrainsKotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "jetbrainsKotlin" }
-mavenPublish = { id = "com.vanniktech.maven.publish", version = "0.34.0" }
+mavenPublish = { id = "com.vanniktech.maven.publish", version = "0.35.0" }
