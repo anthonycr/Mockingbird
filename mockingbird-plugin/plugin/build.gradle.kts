@@ -20,27 +20,27 @@ dependencies {
     testImplementation(libs.junit)
 }
 
-version = "2.3.0"//property("VERSION").toString()
-group = "com.anthonycr.mockingbird.gradle-plugin"//property("GROUP").toString()
+version = property("VERSION").toString()
+group = property("GROUP").toString()
 
 gradlePlugin {
-//    website.set(property("WEBSITE").toString())
-//    vcsUrl.set(property("VCS_URL").toString())
+    website.set(property("WEBSITE").toString())
+    vcsUrl.set(property("VCS_URL").toString())
     plugins {
-        create("com.anthonycr.mockingbird.gradle-plugin"/*property("ID").toString()*/) {
-            id = "com.anthonycr.mockingbird.gradle-plugin"//property("ID").toString()
-            implementationClass = "com.anthonycr.mockingbird.plugin.MockingbirdPlugin"//property("IMPLEMENTATION_CLASS").toString()
-            description = ""//property("DESCRIPTION").toString()
-            displayName = "mockingbird"//property("DISPLAY_NAME").toString()
+        create(property("ID").toString()) {
+            id = property("ID").toString()
+            implementationClass = property("IMPLEMENTATION_CLASS").toString()
+            description = property("DESCRIPTION").toString()
+            displayName = property("DISPLAY_NAME").toString()
             tags.set(
                 listOf(
-                    "files",
+                    "fakes",
                     "kotlin",
                     "kotlin-symbol-processing",
                     "kotlin-compiler",
-                    "ksp",
-                    "mezzanine",
-                    "resources",
+                    "mocks",
+                    "mocking",
+                    "testing",
                 )
             )
         }

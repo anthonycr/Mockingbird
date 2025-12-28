@@ -11,7 +11,6 @@ kotlin {
         languageVersion.set(KotlinVersion.KOTLIN_2_0)
         freeCompilerArgs.add("-Xcontext-parameters")
         optIn.add("org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi")
-//            optIn.add("org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI")
     }
 }
 
@@ -24,8 +23,7 @@ dependencies {
 }
 
 mavenPublishing {
-    // TODO: Only disable signing on CI
-//    signAllPublications()
+    signAllPublications()
     publishToMavenCentral(automaticRelease = true)
     coordinates(artifactId = "compiler-plugin")
 }
