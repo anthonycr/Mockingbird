@@ -9,6 +9,8 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 
 @OptIn(ExperimentalCompilerApi::class)
 class MockingbirdComponentRegistrar : CompilerPluginRegistrar() {
+    override val pluginId: String = "com.anthonycr.mockingbird.plugin"
+
     override val supportsK2: Boolean
         get() = true
 
