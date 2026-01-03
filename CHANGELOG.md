@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.0.0 *(3 January 2026)*
+- Redesigned Mockingbird as a Kotlin compiler plugin.
+- Removed: Dependency on Kotlin Symbol Processing (KSP).
+- Removed: `@Verify` annotation, only `fake` function is required now.
+- Added: Mockingbird Gradle plugin `id("com.anthonycr.plugins.mockingbird") version "3.0.0"`
+
 ## 2.3.0 *(1 November 2025)*
 - Standardize error messaging in assertions so that the Intellij test runner can perform diffing of parameters and function names.
 
