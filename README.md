@@ -1,9 +1,9 @@
 # Mockingbird
 
 A minimalist faking framework exclusively for verifying interactions. It generates fake
-implementations of interfaces and abstract classes that can be verified during a test using Kotlin
-Symbol Processing (KSP). It does not allow mocking behavior or return values, and does not support
-mocking concrete classes.
+implementations of interfaces and abstract classes that can be verified during a test using the
+Kotlin compiler plugin API. It does not allow mocking behavior or return values, and does not
+support mocking concrete classes.
 
 ## Why?
 
@@ -24,16 +24,23 @@ usually performing side effects that are most often verified by a mocking framew
 
 ![Maven Central Version](https://img.shields.io/maven-central/v/com.anthonycr.mockingbird/core)
 
-
-Mockingbird is available on Maven Central. Include the following dependencies in your
-`build.gradle.kts` file.
+Mockingbird is available on Maven Central and through the Gradle Plugin Portal. Include the
+following dependencies in your `build.gradle.kts` file.
 
 ```kotlin
-testImplementation("com.anthonycr.mockingbird:core:<latest_version>")
-kspTest("com.anthonycr.mockingbird:processor:<latest_version>")
+plugins {
+    kotlin("jvm") version "<latest_version>"
+    id("com.anthonycr.plugins.mockingbird") version "<latest_version>"
+}
 ```
 
-Make sure you have the KSP Gradle plugin enabled as well.
+Then add the build dependencies to the `dependencies` block.
+
+```kotlin
+dependencies {
+    testImplementation("com.anthonycr.mockingbird:core:<latest_version>")
+}
+```
 
 Within your test, add the following annotation to a property that you wish to verify. Note that the
 property you are verifying must be an interface or abstract class with a zero argument constructor.
@@ -63,7 +70,6 @@ class ClassToTest(private val analytics: Analytics) {
 
 class ClassToTestTest {
 
-    @Verify
     val analytics: Analytics = fake()
 
     @Test
@@ -84,11 +90,7 @@ class ClassToTestTest {
         classToTest.doSomethingElse()
 
         verify(analytics) {
-            analytics.trackError(
-                sameAs(RuntimeException("Something went wrong")) { e ->
-                    e.message == "Something went wrong")
-                }
-            )
+            analytics.trackError(sameAs { e -> e.message == "Something went wrong") })
         }
     }
 }
@@ -103,12 +105,10 @@ There are 3 `verify*` functions.
     useful if you want to verify that no functions were called, or if you are using `verifyPartial`
     and want to assert that one of the subjects being verified is actually fully verified.
 
-There are 3 matcher functions that can be used to match parameters. If any parameter has a matcher,
-then all parameters must have a matcher for that invocation.
-1. `eq`: Just asserts that the value passed in matches using `==`
-2. `sameAs`: Asserts that the value passed in matches using the lambda matcher.
-3. `any`: Accepts any parameter, useful for dynamic values or values that you really don't care
-    about asserting in your test.
+There are 2 matcher functions that can be used to match parameters outside of basic equality.
+1. `sameAs`: Asserts that the value passed in matches using the lambda matcher.
+2. `any`: Accepts any parameter, useful for dynamic values or values that you really don't care
+   about asserting in your test.
 
 ## Benchmark
 Run `./benchmark.sh` to execute a benchmark comparison of Mockingbird to Mockk. There are two Mockk
