@@ -17,7 +17,7 @@ class ClassToTestTest {
 
     private val interfaceToVerify1 = fake<InterfaceToVerify1>()
 
-    private val interfaceToVerify2 = fake(InterfaceToVerify2::class.java)
+    private val interfaceToVerify2 = fake(InterfaceToVerify2::class)
 
     private val classToVerify1 = fake<ClassToVerify1>()
 

@@ -1,6 +1,6 @@
 package com.anthonycr.mockingbird.core
 
-import org.junit.Test
+import kotlin.test.Test
 
 class FakesKtTest {
 
@@ -14,7 +14,7 @@ class FakesKtTest {
     @Test
     fun `fake throws exception when there is no gradle plugin applied`() {
         assertThrows<RuntimeException>("Generated code is missing. Please apply the Mockingbird Gradle plugin.") {
-            fake(Unit::class.java)
+            fake(Unit::class)
         }
     }
 
@@ -28,7 +28,7 @@ class FakesKtTest {
                     "Exception message mismatch\n\tExpected: $message\n\tActual: ${t.message}"
                 }
             } else {
-                error("Expected exception of type ${T::class.java.simpleName}, ${t::class.java.simpleName} was thrown instead")
+                error("Expected exception of type ${T::class.simpleName}, ${t::class.simpleName} was thrown instead")
             }
         }
     }
