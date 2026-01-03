@@ -1,6 +1,5 @@
 package com.anthonycr.mockingbird.sample
 
-import com.anthonycr.mockingbird.core.Verify
 import com.anthonycr.mockingbird.core.fake
 import com.anthonycr.mockingbird.core.verify
 import com.anthonycr.mockingbird.core.verifyComplete
@@ -10,23 +9,19 @@ import org.junit.Test
 
 class ClassToTestTest {
 
-    @Verify
-    val lambdaToVerify1: (String) -> Unit = fake()
+    private val nonFake = ""
 
-    @Verify
-    val lambdaToVerify2: (Int) -> Unit = fake()
+    private val lambdaToVerify1: (String) -> Unit = fake()
 
-    @Verify
-    val interfaceToVerify1 = fake<InterfaceToVerify1>()
+    private val lambdaToVerify2: (Int) -> Unit = fake()
 
-    @Verify
-    val interfaceToVerify2 = fake(InterfaceToVerify2::class.java)
+    private val interfaceToVerify1 = fake<InterfaceToVerify1>()
 
-    @Verify
-    val classToVerify1 = fake<ClassToVerify1>()
+    private val interfaceToVerify2 = fake(InterfaceToVerify2::class.java)
 
-    @Verify
-    val classToVerify2 = fake<ClassToVerify2>()
+    private val classToVerify1 = fake<ClassToVerify1>()
+
+    private val classToVerify2 = fake<ClassToVerify2>()
 
     private fun createClassToTest() = ClassToTest(
         lambdaToVerify1,
@@ -224,19 +219,19 @@ class ClassToTestTest {
         classToTest.act5()
 
         verify(interfaceToVerify1) {
-            interfaceToVerify1.performAction3(sameAs(Exception("test")) { a -> a.message == "test" })
+            interfaceToVerify1.performAction3(sameAs { a -> a.message == "test" })
         }
     }
 
     @Test
     fun `verification of inequitable type with parameter verification expected failure`() {
-        assertThrows<IllegalStateException>("expected: < ARGUMENT 0: java.lang.Exception: test1> but was: < ARGUMENT 0: java.lang.Exception: test>") {
+        assertThrows<IllegalStateException>("[sameAs] matcher for <ARGUMENT 0> rejects value: java.lang.Exception: test") {
             val classToTest = createClassToTest()
 
             classToTest.act5()
 
             verify(interfaceToVerify1) {
-                interfaceToVerify1.performAction3(sameAs(Exception("test1")) { a -> a.message == "test1" })
+                interfaceToVerify1.performAction3(sameAs { a -> a.message == "test1" })
             }
         }
     }
@@ -249,16 +244,16 @@ class ClassToTestTest {
 
         verify(interfaceToVerify1) {
             interfaceToVerify1.performAction4(
-                one = eq("one"),
-                two = any(1),
-                exception = sameAs(Exception("test")) { a -> a.message == "test" }
+                one = "one",
+                two = any(),
+                exception = sameAs { a -> a.message == "test" }
             )
         }
     }
 
     @Test
     fun `verification of multiple types with parameter verification expected failure`() {
-        assertThrows<IllegalStateException>("Expected 3 matchers, found 1 instead. When using custom parameter verification, all parameters must use matchers.") {
+        assertThrows<IllegalStateException>("expected: < ARGUMENT 1: 1> but was: < ARGUMENT 1: 2>") {
             val classToTest = createClassToTest()
 
             classToTest.act6()
@@ -267,7 +262,7 @@ class ClassToTestTest {
                 interfaceToVerify1.performAction4(
                     one = "one",
                     two = 1,
-                    exception = sameAs(Exception("test")) { a -> a.message == "test" }
+                    exception = sameAs { a -> a.message == "test" }
                 )
             }
         }
@@ -300,7 +295,7 @@ class ClassToTestTest {
         classToTest.act8()
 
         verify(interfaceToVerify2) {
-            interfaceToVerify2.performAction4(eq("one"))
+            interfaceToVerify2.performAction4("one")
         }
     }
 
@@ -335,6 +330,15 @@ class ClassToTestTest {
         verify(classToVerify2) {
             classToVerify2.act1("one")
             classToVerify2.act1("two")
+        }
+    }
+
+    @Test
+    fun `verification of non faked class is not allowed`() {
+        assertThrows<IllegalStateException>("You can only verify interfaces that have been created by fake()") {
+            verify(nonFake) {
+                nonFake.chars()
+            }
         }
     }
 

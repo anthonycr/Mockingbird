@@ -16,7 +16,6 @@ import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
 import com.squareup.kotlinpoet.ksp.writeTo
 import org.junit.After
-import org.junit.Before
 import org.junit.Test
 
 class MockkInterfaceBenchmarkGenerator(
