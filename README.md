@@ -130,6 +130,6 @@ characteristics of each approach.
 - Apple M4 Pro
 
 #### Results
-- Mockingbird: 63.7 seconds
-- Mockk (Interface): 68.7 seconds
-- Mockk (Static): 110.4 seconds
+- Mockingbird: 10.1 seconds
+- Mockk (Interface): 40.8 seconds
+- Mockk (Static): 82.0 seconds
