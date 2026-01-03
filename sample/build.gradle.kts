@@ -1,6 +1,6 @@
 plugins {
     kotlin("jvm")
-    id("com.anthonycr.mockingbird.gradle-plugin")
+    id("com.anthonycr.plugins.mockingbird")
 }
 
 kotlin {

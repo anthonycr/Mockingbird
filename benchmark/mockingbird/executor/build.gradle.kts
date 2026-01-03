@@ -1,7 +1,7 @@
 plugins {
     kotlin("jvm")
     alias(libs.plugins.ksp.plugin)
-    id("com.anthonycr.mockingbird.gradle-plugin")
+    id("com.anthonycr.plugins.mockingbird")
 }
 
 kotlin {
