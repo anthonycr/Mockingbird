@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     id("java-gradle-plugin")
+    alias(libs.plugins.gradle.publish)
     alias(libs.plugins.jetbrainsKotlinJvm)
 }
 
