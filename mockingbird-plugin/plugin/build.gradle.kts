@@ -4,6 +4,15 @@ plugins {
     id("java-gradle-plugin")
     alias(libs.plugins.gradle.publish)
     alias(libs.plugins.jetbrainsKotlinJvm)
+    alias(libs.plugins.buildconfig)
+}
+
+buildConfig {
+    useKotlinOutput {
+        internalVisibility = true
+    }
+
+    buildConfigField("String", "mockingbirdVersion", "\"${property("VERSION").toString()}\"")
 }
 
 kotlin {
@@ -14,7 +23,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(kotlin("gradle-plugin-api"))
+    compileOnly(libs.kotlin.gradle)
     implementation(gradleApi())
 
     testImplementation(libs.compiletesting)
