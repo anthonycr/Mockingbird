@@ -34,14 +34,6 @@ plugins {
 }
 ```
 
-Then add the build dependencies to the `dependencies` block.
-
-```kotlin
-dependencies {
-    testImplementation("com.anthonycr.mockingbird:core:<latest_version>")
-}
-```
-
 Within your test, add the following annotation to a property that you wish to verify. Note that the
 property you are verifying must be an interface or abstract class with a zero argument constructor.
 All functions you wish to verify must return `Unit` and when verifying an abstract class, the
