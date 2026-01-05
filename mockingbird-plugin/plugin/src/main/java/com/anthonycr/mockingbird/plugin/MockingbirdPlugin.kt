@@ -21,6 +21,5 @@ class MockingbirdPlugin : KotlinCompilerPluginSupportPlugin {
         version = "3.0.0"
     )
 
-    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean =
-        kotlinCompilation.name == "test"
+    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = true
 }
