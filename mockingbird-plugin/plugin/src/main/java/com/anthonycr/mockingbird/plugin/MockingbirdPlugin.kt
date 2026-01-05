@@ -18,7 +18,7 @@ class MockingbirdPlugin : KotlinCompilerPluginSupportPlugin {
     override fun getPluginArtifact(): SubpluginArtifact = SubpluginArtifact(
         groupId = "com.anthonycr.mockingbird",
         artifactId = "compiler-plugin",
-        version = "3.0.0"
+        version = "3.0.1"
     )
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = true

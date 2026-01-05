@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 3.0.1 *(5 January 2026)*
+- Fix issue with Mockingbird compiler not running when applied to a project with multiple test compilation variants (i.e. Android projects).
+
 ## 3.0.0 *(3 January 2026)*
 - Redesigned Mockingbird as a Kotlin compiler plugin.
 - Removed: Dependency on Kotlin Symbol Processing (KSP).
