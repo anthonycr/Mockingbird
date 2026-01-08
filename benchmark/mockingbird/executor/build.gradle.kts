@@ -10,7 +10,6 @@ kotlin {
 
 dependencies {
     testImplementation(libs.junit)
-    testImplementation(project(":mockingbird:core"))
     kspTest(project(":benchmark:mockingbird:generator"))
 }
 

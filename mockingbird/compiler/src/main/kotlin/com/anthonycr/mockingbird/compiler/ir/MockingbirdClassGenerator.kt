@@ -3,7 +3,9 @@ package com.anthonycr.mockingbird.compiler.ir
 import com.anthonycr.mockingbird.compiler.utils.debug
 import com.anthonycr.mockingbird.compiler.utils.debugDump
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.backend.common.getCompilerMessageLocation
 import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
@@ -85,6 +87,8 @@ class MockingbirdClassGenerator(
 
     val classes = mutableListOf<IrClass>()
 
+    private var currentFile: IrFile? = null
+
     override fun visitFile(declaration: IrFile): IrFile {
         // com.example.Interface_Fake.kt -> com.example.Interface
         val fakeFqName =
@@ -100,6 +104,7 @@ class MockingbirdClassGenerator(
 
             messageCollector.debugDump(irClass)
         }
+        currentFile = declaration
         return super.visitFile(declaration)
     }
 
@@ -133,8 +138,8 @@ class MockingbirdClassGenerator(
                                     elementType = matcher.symbol.defaultType,
                                     // Drop receiver
                                     values = (statement.arguments.drop(1)).map {
-                                        if (it is IrCall) {
-                                            when (it.symbol.owner.name) {
+                                        when (it) {
+                                            is IrCall -> when (it.symbol.owner.name) {
                                                 anyName -> irGetObject(anythingMatcher.symbol)
 
                                                 sameAsName -> irCall(
@@ -147,8 +152,19 @@ class MockingbirdClassGenerator(
                                                     arguments[0] = it
                                                 }
                                             }
-                                        } else {
-                                            irCall(equalsMatcher.symbol.owner.primaryConstructor!!).apply {
+
+                                            null -> {
+                                                // Default parameters can't be accessed from within the verify function.
+                                                // Different approach would be needed.
+                                                messageCollector.report(
+                                                    severity = CompilerMessageSeverity.ERROR,
+                                                    message = "Mockingbird can't access default parameters, please specify expected arguments explicitly",
+                                                    location = statement.getCompilerMessageLocation(currentFile!!)
+                                                )
+                                                irNull()
+                                            }
+
+                                            else -> irCall(equalsMatcher.symbol.owner.primaryConstructor!!).apply {
                                                 arguments[0] = it
                                             }
                                         }
