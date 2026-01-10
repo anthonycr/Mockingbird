@@ -28,6 +28,7 @@ rootProject.name = "Mockingbird"
 include(":mockingbird:compiler")
 include(":mockingbird:core")
 include(":sample")
+include(":sample-android")
 include(":benchmark:mockk-static:generator")
 include(":benchmark:mockk-static:executor")
 include(":benchmark:mockingbird:executor")
