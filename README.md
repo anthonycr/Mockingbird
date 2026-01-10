@@ -114,7 +114,7 @@ See the README files for each benchmark ([mockingbird](benchmark/mockingbird/REA
 [mockk-static](benchmark/mockk-static/README.md)) for more information about the performance
 characteristics of each approach.
 
-### Current benchmark runtimes (3 July 2025)
+### Current benchmark runtimes (4 January 2026)
 
 #### Parameters
 - 3 classes to be verified
