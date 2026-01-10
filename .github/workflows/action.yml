@@ -22,5 +22,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
       - name: Publish Compiler Plugin
         run: ./gradlew :mockingbird:compiler:publishToMavenLocal
+      - name: Publish Core
+        run: ./gradlew :mockingbird:core:publishToMavenLocal
       - name: Build
         run: ./gradlew build

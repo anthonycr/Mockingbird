@@ -65,7 +65,10 @@ dependencies {
 }
 
 mavenPublishing {
-    signAllPublications()
+    // Disable signing on CI since we publish to maven local as part of the build
+    if (providers.environmentVariable("CI").orNull != "true") {
+        signAllPublications()
+    }
     publishToMavenCentral(automaticRelease = true)
     coordinates(artifactId = "core")
 }

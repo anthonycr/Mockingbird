@@ -80,10 +80,12 @@ class MockingbirdClassGenerator(
     private val equalsMatcher = Verifiable.Matcher.Equals(pluginContext)
     private val sameAsMatcher = Verifiable.Matcher.SameAs(pluginContext)
     private val anythingMatcher = Verifiable.Matcher.Anything(pluginContext)
-    private val anyName = Name.identifier("any")
-    private val sameAsName = Name.identifier("sameAs")
-    private val verifyName = FqName("com.anthonycr.mockingbird.core.verify")
-    private val verifyPartialName = FqName("com.anthonycr.mockingbird.core.verifyPartial")
+    private val verificationContext = VerificationContext()
+    private val anyFqName = verificationContext.any
+    private val sameAsFqName = verificationContext.sameAs
+    private val verification = Verification()
+    private val verifyFqName = verification.verifyFqName
+    private val verifyPartialFqName = verification.verifyPartialFqName
 
     val classes = mutableListOf<IrClass>()
 
@@ -139,10 +141,10 @@ class MockingbirdClassGenerator(
                                     // Drop receiver
                                     values = (statement.arguments.drop(1)).map {
                                         when (it) {
-                                            is IrCall -> when (it.symbol.owner.name) {
-                                                anyName -> irGetObject(anythingMatcher.symbol)
+                                            is IrCall -> when (it.symbol.owner.fqNameWhenAvailable) {
+                                                anyFqName -> irGetObject(anythingMatcher.symbol)
 
-                                                sameAsName -> irCall(
+                                                sameAsFqName -> irCall(
                                                     sameAsMatcher.symbol.owner.primaryConstructor!!
                                                 ).apply {
                                                     arguments[0] = it.arguments[1]
@@ -159,7 +161,9 @@ class MockingbirdClassGenerator(
                                                 messageCollector.report(
                                                     severity = CompilerMessageSeverity.ERROR,
                                                     message = "Mockingbird can't access default parameters, please specify expected arguments explicitly",
-                                                    location = statement.getCompilerMessageLocation(currentFile!!)
+                                                    location = statement.getCompilerMessageLocation(
+                                                        currentFile!!
+                                                    )
                                                 )
                                                 irNull()
                                             }
@@ -219,8 +223,8 @@ class MockingbirdClassGenerator(
      */
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     override fun visitCall(expression: IrCall): IrExpression {
-        if (expression.symbol.owner.kotlinFqName == verifyName ||
-            expression.symbol.owner.kotlinFqName == verifyPartialName
+        if (expression.symbol.owner.kotlinFqName == verifyFqName ||
+            expression.symbol.owner.kotlinFqName == verifyPartialFqName
         ) {
             val verifiables = expression.arguments.first() as IrVararg
 

@@ -20,7 +20,10 @@ class MockingbirdFunctionCollector(
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     override fun visitCall(expression: IrCall): IrExpression {
         if (expression.symbol.owner.kotlinFqName == fakeFunctionFqName) {
-            typesToGenerate.put(expression.type.classFqName!!, expression.type)
+            val prefixedFqName = FqName(
+                "$GENERATED_PREFIX.${expression.type.classFqName!!.asString()}"
+            )
+            typesToGenerate.put(prefixedFqName, expression.type)
             messageCollector.debug("Collected type from call ${expression.type.classFqName!!}")
         }
         return super.visitCall(expression)
