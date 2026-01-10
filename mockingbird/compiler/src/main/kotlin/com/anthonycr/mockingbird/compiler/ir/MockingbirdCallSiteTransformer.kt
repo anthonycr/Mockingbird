@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
+import org.jetbrains.kotlin.name.FqName
 
 class MockingbirdCallSiteTransformer(
     private val messageCollector: MessageCollector,
@@ -37,8 +38,10 @@ class MockingbirdCallSiteTransformer(
     @OptIn(UnsafeDuringIrConstructionAPI::class)
     override fun visitCall(expression: IrCall): IrExpression {
         if (expression.symbol.owner.kotlinFqName == fakeFunctionFqName) {
-            val replacement =
-                generatedClasses.first { it.fqNameWhenAvailable!!.asString() == "${expression.type.classFqName!!.asString()}_Fake" }
+            val prefixedFqName = FqName(
+                "${generatedPrefix.asString()}.${expression.type.classFqName!!.asString()}_Fake"
+            )
+            val replacement = generatedClasses.first { it.fqNameWhenAvailable == prefixedFqName }
             val constructor = replacement.primaryConstructor!!.symbol
             messageCollector.debug("Transforming call site for ${constructor.owner.returnType.classFqName}")
 

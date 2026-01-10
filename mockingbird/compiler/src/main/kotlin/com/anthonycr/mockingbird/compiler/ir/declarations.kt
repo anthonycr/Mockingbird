@@ -44,8 +44,25 @@ class FunctionDeclaration(
     }
 }
 
+class VerificationContext {
+    private val fqName = FqName("com.anthonycr.mockingbird.core.internal.VerificationContext")
+
+    val sameAs = fqName.child(Name.identifier("sameAs"))
+
+    val any = fqName.child(Name.identifier("any"))
+}
+
+class Verification {
+    private val fqName = FqName("com.anthonycr.mockingbird.core")
+
+    val verifyFqName = fqName.child(Name.identifier("verify"))
+
+    val verifyPartialFqName = fqName.child(Name.identifier("verifyPartial"))
+}
+
 class Verifiable(private val pluginContext: IrPluginContext) {
-    val classId = ClassId.Companion.topLevel(FqName("com.anthonycr.mockingbird.core.internal.Verifiable"))
+    val classId =
+        ClassId.Companion.topLevel(FqName("com.anthonycr.mockingbird.core.internal.Verifiable"))
 
     val symbol by lazy {
         pluginContext.referenceClass(classId)!!
