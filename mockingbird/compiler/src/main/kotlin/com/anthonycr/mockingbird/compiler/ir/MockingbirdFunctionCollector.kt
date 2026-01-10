@@ -21,7 +21,7 @@ class MockingbirdFunctionCollector(
     override fun visitCall(expression: IrCall): IrExpression {
         if (expression.symbol.owner.kotlinFqName == fakeFunctionFqName) {
             val prefixedFqName = FqName(
-                "${generatedPrefix.asString()}.${expression.type.classFqName!!.asString()}"
+                "$GENERATED_PREFIX.${expression.type.classFqName!!.asString()}"
             )
             typesToGenerate.put(prefixedFqName, expression.type)
             messageCollector.debug("Collected type from call ${expression.type.classFqName!!}")

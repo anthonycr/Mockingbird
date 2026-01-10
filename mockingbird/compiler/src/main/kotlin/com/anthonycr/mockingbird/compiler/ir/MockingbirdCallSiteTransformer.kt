@@ -39,7 +39,7 @@ class MockingbirdCallSiteTransformer(
     override fun visitCall(expression: IrCall): IrExpression {
         if (expression.symbol.owner.kotlinFqName == fakeFunctionFqName) {
             val prefixedFqName = FqName(
-                "${generatedPrefix.asString()}.${expression.type.classFqName!!.asString()}_Fake"
+                "$GENERATED_PREFIX.${expression.type.classFqName!!.asString()}_Fake"
             )
             val replacement = generatedClasses.first { it.fqNameWhenAvailable == prefixedFqName }
             val constructor = replacement.primaryConstructor!!.symbol
