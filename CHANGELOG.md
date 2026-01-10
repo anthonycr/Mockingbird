@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.1.0 *(10 January 2026)*
+- Changed: `core` dependency is now automatically added by the Gradle plugin.
+- Added: Multiplatform targets for iOS, macOS, tvOS, watchOS, Wasm, NodeJS, MingGW, and Linux.
+- Fixed: Mockingbird now specifies that default parameters are not supported and reports the offending code, instead of throwing unclear error.
+- Fixed: Test failures in Android Robolectric tests caused by classloader order issues.
+
 ## 3.0.1 *(5 January 2026)*
 - Fix issue with Mockingbird compiler not running when applied to a project with multiple test compilation variants (i.e. Android projects).
 
