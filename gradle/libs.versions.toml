@@ -4,7 +4,7 @@ jetbrainsKotlin = "2.3.0"
 kotlinpoet = "2.2.0"
 ksp = "2.3.4"
 jvm = "17"
-agp = "8.13.2"
+agp = "9.0.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
