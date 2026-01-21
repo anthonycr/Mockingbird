@@ -19,7 +19,7 @@ coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "jetbrainsKotlin" }
 kotlin-gradle = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "jetbrainsKotlin" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "jetbrainsKotlin" }
-robolectric = { group = "org.robolectric", name = "robolectric", version = "4.16" }
+robolectric = { group = "org.robolectric", name = "robolectric", version = "4.16.1" }
 androidx-test = { group = "androidx.test.ext", name = "junit", version = "1.3.0" }
 
 [plugins]
