@@ -14,7 +14,7 @@ kotlin-compiler = { group = "org.jetbrains.kotlin", name = "kotlin-compiler", ve
 kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }
 kotlinpoet-ksp = { group = "com.squareup", name = "kotlinpoet-ksp", version.ref = "kotlinpoet" }
 compiletesting = { group = "dev.zacsweers.kctfork", name = "ksp", version = "0.12.1" }
-mockk = { group = "io.mockk", name = "mockk", version = "1.14.7" }
+mockk = { group = "io.mockk", name = "mockk", version = "1.14.9" }
 coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version = "1.10.2" }
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "jetbrainsKotlin" }
 kotlin-gradle = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "jetbrainsKotlin" }
