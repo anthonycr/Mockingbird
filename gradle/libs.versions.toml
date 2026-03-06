@@ -28,6 +28,6 @@ gradle-publish = { id = "com.gradle.plugin-publish", version = "2.1.0" }
 jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlin" }
 jetbrainsKotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "jetbrainsKotlin" }
 mavenPublish = { id = "com.vanniktech.maven.publish", version = "0.36.0" }
-buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.7" }
+buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.9" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "jetbrainsKotlin" }
