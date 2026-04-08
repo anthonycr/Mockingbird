@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 3.2.0 *(8 April 2026)*
+- Updated Kotlin to 2.3.20
+
 ## 3.1.0 *(10 January 2026)*
 - Changed: `core` dependency is now automatically added by the Gradle plugin.
 - Added: Multiplatform targets for iOS, macOS, tvOS, watchOS, Wasm, NodeJS, MingGW, and Linux.
