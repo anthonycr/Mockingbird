@@ -8,7 +8,7 @@ plugins {
 kotlin {
     jvmToolchain(libs.versions.jvm.get().toInt())
     compilerOptions {
-        languageVersion.set(KotlinVersion.KOTLIN_2_0)
+        languageVersion.set(KotlinVersion.KOTLIN_2_2)
         freeCompilerArgs.add("-Xcontext-parameters")
         optIn.add("org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi")
     }
