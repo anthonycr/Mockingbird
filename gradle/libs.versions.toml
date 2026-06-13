@@ -13,7 +13,7 @@ ksp-api = { group = "com.google.devtools.ksp", name = "symbol-processing-api", v
 kotlin-compiler = { group = "org.jetbrains.kotlin", name = "kotlin-compiler", version.ref = "jetbrainsKotlin" }
 kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }
 kotlinpoet-ksp = { group = "com.squareup", name = "kotlinpoet-ksp", version.ref = "kotlinpoet" }
-compiletesting = { group = "dev.zacsweers.kctfork", name = "ksp", version = "0.12.1" }
+compiletesting = { group = "dev.zacsweers.kctfork", name = "ksp", version = "0.13.0" }
 mockk = { group = "io.mockk", name = "mockk", version = "1.14.11" }
 coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version = "1.11.0" }
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "jetbrainsKotlin" }
@@ -28,6 +28,6 @@ gradle-publish = { id = "com.gradle.plugin-publish", version = "2.1.1" }
 jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlin" }
 jetbrainsKotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "jetbrainsKotlin" }
 mavenPublish = { id = "com.vanniktech.maven.publish", version = "0.36.0" }
-buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.9" }
+buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.10" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "jetbrainsKotlin" }
