@@ -1,3 +1,4 @@
+import org.gradle.plugin.compatibility.compatibility
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
@@ -53,6 +54,11 @@ gradlePlugin {
                     "testing",
                 )
             )
+            compatibility {
+                features {
+                    configurationCache = true
+                }
+            }
         }
     }
 }
