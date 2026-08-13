@@ -5,7 +5,9 @@ import com.anthonycr.mockingbird.core.verify
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@Config(sdk = [36])
 @RunWith(RobolectricTestRunner::class)
 class RobolectricTest {
 
