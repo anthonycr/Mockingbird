@@ -1,6 +1,6 @@
 [versions]
 junit = "4.13.2"
-jetbrainsKotlin = "2.4.10"
+jetbrainsKotlin = "2.4.20"
 kotlinpoet = "2.4.0"
 ksp = "2.3.11"
 jvm = "21"
