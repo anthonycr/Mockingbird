@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.MessageCollectorAccess
 
 @OptIn(ExperimentalCompilerApi::class)
 class MockingbirdComponentRegistrar : CompilerPluginRegistrar() {
@@ -14,6 +15,7 @@ class MockingbirdComponentRegistrar : CompilerPluginRegistrar() {
     override val supportsK2: Boolean
         get() = true
 
+    @OptIn(MessageCollectorAccess::class)
     override fun ExtensionStorage.registerExtensions(
         configuration: CompilerConfiguration
     ) {
