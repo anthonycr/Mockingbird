@@ -19,6 +19,7 @@ class MockingbirdComponentRegistrar : CompilerPluginRegistrar() {
     override fun ExtensionStorage.registerExtensions(
         configuration: CompilerConfiguration
     ) {
+        // TODO: Remove debug logs and switch to DiagnosticReporter on IrPluginContext for error reporting.
         val messageCollector = configuration[CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE]
         IrGenerationExtension.registerExtension(MockingbirdIrGenerationExtension(messageCollector))
     }
