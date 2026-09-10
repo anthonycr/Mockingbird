@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 3.4.0 *(10 September 2026)*
+- Updated Kotlin to 2.4.20
+
 ## 3.3.0 *(16 June 2026)*
 - Updated Kotlin to 2.4.0
 
