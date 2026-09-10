@@ -18,7 +18,7 @@ class PropertyDeclaration(
     val callableId: CallableId,
 ) {
     val symbol by lazy {
-        pluginContext.referenceProperties(callableId).first()
+        pluginContext.finderForBuiltins().findProperties(callableId).first()
     }
     val getter by lazy {
         symbol.owner.getter!!
@@ -36,7 +36,7 @@ class FunctionDeclaration(
         pluginContext: IrPluginContext,
         selector: Collection<IrSimpleFunctionSymbol>.() -> IrSimpleFunctionSymbol
     ) : this(
-        { pluginContext.referenceFunctions(callableId).selector() }
+        { pluginContext.finderForBuiltins().findFunctions(callableId).selector() }
     )
 
     val symbol by lazy {
@@ -62,10 +62,10 @@ class Verification {
 
 class Verifiable(private val pluginContext: IrPluginContext) {
     val classId =
-        ClassId.Companion.topLevel(FqName("com.anthonycr.mockingbird.core.internal.Verifiable"))
+        ClassId.topLevel(FqName("com.anthonycr.mockingbird.core.internal.Verifiable"))
 
     val symbol by lazy {
-        pluginContext.referenceClass(classId)!!
+        pluginContext.finderForBuiltins().findClass(classId)!!
     }
 
     val invocations by lazy {
@@ -101,7 +101,7 @@ class Verifiable(private val pluginContext: IrPluginContext) {
         val classId = verifiable.classId.createNestedClassId(Name.identifier("Invocation"))
 
         val symbol by lazy {
-            pluginContext.referenceClass(classId)!!
+            pluginContext.finderForBuiltins().findClass(classId)!!
         }
     }
 
@@ -111,7 +111,7 @@ class Verifiable(private val pluginContext: IrPluginContext) {
         val classId = verifiable.classId.createNestedClassId(Name.identifier("Matcher"))
 
         val symbol by lazy {
-            pluginContext.referenceClass(classId)!!
+            pluginContext.finderForBuiltins().findClass(classId)!!
         }
 
         class Equals(private val pluginContext: IrPluginContext) {
@@ -120,7 +120,7 @@ class Verifiable(private val pluginContext: IrPluginContext) {
             val classId = matcher.classId.createNestedClassId(Name.identifier("Equals"))
 
             val symbol by lazy {
-                pluginContext.referenceClass(classId)!!
+                pluginContext.finderForBuiltins().findClass(classId)!!
             }
 
             val value by lazy {
@@ -134,7 +134,7 @@ class Verifiable(private val pluginContext: IrPluginContext) {
             val classId = matcher.classId.createNestedClassId(Name.identifier("SameAs"))
 
             val symbol by lazy {
-                pluginContext.referenceClass(classId)!!
+                pluginContext.finderForBuiltins().findClass(classId)!!
             }
         }
 
@@ -144,7 +144,7 @@ class Verifiable(private val pluginContext: IrPluginContext) {
             val classId = matcher.classId.createNestedClassId(Name.identifier("Anything"))
 
             val symbol by lazy {
-                pluginContext.referenceClass(classId)!!
+                pluginContext.finderForBuiltins().findClass(classId)!!
             }
         }
     }

@@ -13,7 +13,7 @@ buildConfig {
         internalVisibility = true
     }
 
-    buildConfigField("String", "mockingbirdVersion", "\"${property("VERSION").toString()}\"")
+    buildConfigField("String", "MOCKINGBIRD_VERSION", "\"${property("VERSION").toString()}\"")
 }
 
 kotlin {

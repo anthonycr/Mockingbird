@@ -23,7 +23,7 @@ class MockingbirdFunctionCollector(
             val prefixedFqName = FqName(
                 "$GENERATED_PREFIX.${expression.type.classFqName!!.asString()}"
             )
-            typesToGenerate.put(prefixedFqName, expression.type)
+            typesToGenerate[prefixedFqName] = expression.type
             messageCollector.debug("Collected type from call ${expression.type.classFqName!!}")
         }
         return super.visitCall(expression)

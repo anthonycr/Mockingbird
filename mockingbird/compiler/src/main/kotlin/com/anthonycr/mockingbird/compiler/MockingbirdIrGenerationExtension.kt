@@ -24,7 +24,7 @@ class MockingbirdIrGenerationExtension(
         val collector = MockingbirdFunctionCollector(messageCollector)
         moduleFragment.accept(collector, null)
 
-        collector.typesToGenerate.forEach { name, type ->
+        collector.typesToGenerate.forEach { (name, _) ->
             val fakeNewPath = Path(name.parent().asString().replace(".", "/"))
                 .resolve(name.shortName().asString() + "_Fake.kt")
             // Idea taken from https://github.com/ZacSweers/metro/blob/0.6.8/compiler/src/main/kotlin/dev/zacsweers/metro/compiler/ir/transformers/HintGenerator.kt
