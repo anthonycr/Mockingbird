@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 3.5.0 *(7 November 2026)*
+- Plugin now only adds the core dependency to a configuration if it exists.
+- Updated Kotlin to 2.4.21
+
 ## 3.4.0 *(10 September 2026)*
 - Updated Kotlin to 2.4.20
 
