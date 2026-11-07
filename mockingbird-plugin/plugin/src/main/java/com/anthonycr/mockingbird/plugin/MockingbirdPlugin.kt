@@ -14,31 +14,39 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 class MockingbirdPlugin : KotlinCompilerPluginSupportPlugin {
 
     override fun apply(target: Project) = with(target) {
+        val coreDependency = "com.anthonycr.mockingbird:core:${BuildConfig.MOCKINGBIRD_VERSION}"
+
         pluginManager.withPlugin("org.jetbrains.kotlin.multiplatform") {
             extensions.getByType(KotlinBaseExtension::class.java).apply {
                 sourceSets.getByName(COMMON_TEST_SOURCE_SET_NAME).dependencies {
-                    implementation("com.anthonycr.mockingbird:core:${BuildConfig.MOCKINGBIRD_VERSION}")
+                    implementation(coreDependency)
                 }
             }
         }
 
         pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
-            dependencies.add("testImplementation", "com.anthonycr.mockingbird:core:${BuildConfig.MOCKINGBIRD_VERSION}")
+            if (configurations.findByName("testImplementation") != null) {
+                dependencies.add("testImplementation", coreDependency)
+            }
         }
 
         pluginManager.withPlugin("org.jetbrains.kotlin.android") {
-            dependencies.apply {
-                add("testImplementation", "com.anthonycr.mockingbird:core:${BuildConfig.MOCKINGBIRD_VERSION}")
-                add("androidTestImplementation", "com.anthonycr.mockingbird:core:${BuildConfig.MOCKINGBIRD_VERSION}")
+            if (configurations.findByName("testImplementation") != null) {
+                dependencies.add("testImplementation", coreDependency)
+            }
+            if (configurations.findByName("androidTestImplementation") != null) {
+                dependencies.add("androidTestImplementation", coreDependency)
             }
         }
 
         // AGP's built-in Kotlin
-        target.pluginManager.withPlugin("com.android.base") {
-            if (target.plugins.hasPlugin(KotlinBaseApiPlugin::class.java)) {
-                target.dependencies.apply {
-                    add("testImplementation", "com.anthonycr.mockingbird:core:${BuildConfig.MOCKINGBIRD_VERSION}")
-                    add("androidTestImplementation", "com.anthonycr.mockingbird:core:${BuildConfig.MOCKINGBIRD_VERSION}")
+        pluginManager.withPlugin("com.android.base") {
+            if (plugins.hasPlugin(KotlinBaseApiPlugin::class.java)) {
+                if (configurations.findByName("testImplementation") != null) {
+                    dependencies.add("testImplementation", coreDependency)
+                }
+                if (configurations.findByName("androidTestImplementation") != null) {
+                    dependencies.add("androidTestImplementation", coreDependency)
                 }
             }
         }
@@ -53,7 +61,9 @@ class MockingbirdPlugin : KotlinCompilerPluginSupportPlugin {
     override fun getCompilerPluginId(): String = "com.anthonycr.mockingbird.plugin"
 
     override fun getPluginArtifact(): SubpluginArtifact = SubpluginArtifact(
-        groupId = "com.anthonycr.mockingbird", artifactId = "compiler-plugin", version = BuildConfig.MOCKINGBIRD_VERSION
+        groupId = "com.anthonycr.mockingbird",
+        artifactId = "compiler-plugin",
+        version = BuildConfig.MOCKINGBIRD_VERSION
     )
 
     override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = true
