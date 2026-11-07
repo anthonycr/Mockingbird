@@ -47,7 +47,6 @@ gradlePlugin {
                 listOf(
                     "fakes",
                     "kotlin",
-                    "kotlin-symbol-processing",
                     "kotlin-compiler",
                     "mocks",
                     "mocking",
